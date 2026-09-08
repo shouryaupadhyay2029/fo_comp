@@ -52,7 +52,8 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
                 </div>
 
                 <div className="row-presence-badge font-mono">
-                  ● {realm.activeCount} PRESENT
+                  <span className="pulse-dot" />
+                  {realm.activeCount} PRESENT
                 </div>
 
                 <div className="row-arrow-action font-mono">
@@ -163,49 +164,73 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
         }
 
         .catalogue-row:hover {
-          transform: translateX(6px);
-          background: rgba(255, 255, 255, 0.02);
+          transform: translateX(12px);
+          background: rgba(217, 78, 0, 0.04);
+          padding-left: 16px;
         }
 
         .catalogue-row:hover .row-main-title {
-          color: #ffffff;
+          color: #121110;
+          letter-spacing: 0.12em;
         }
 
         .catalogue-row:hover .row-arrow-action {
           color: var(--accent-orange);
-          transform: translateX(4px);
+          transform: translateX(6px);
+        }
+
+        .catalogue-row:hover .row-presence-badge {
+          color: var(--accent-orange);
         }
 
         .row-number {
-          font-size: 0.85rem;
-          color: #64748b;
+          font-size: 0.9rem;
+          color: var(--color-text-dim);
           font-weight: 700;
         }
 
         .row-main-title {
-          font-size: 1.15rem;
-          font-weight: 700;
+          font-size: 1.25rem;
+          font-weight: 800;
           letter-spacing: 0.08em;
-          color: #cbd5e1;
-          transition: color 0.3s ease;
+          color: #1a1917;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .row-presence-badge {
-          font-size: 0.75rem;
-          color: #38bdf8;
-          letter-spacing: 0.12em;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #0284c7;
+          letter-spacing: 0.14em;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          transition: color 0.3s ease;
+        }
+
+        .pulse-dot {
+          display: inline-block;
+          width: 7px;
+          height: 7px;
+          background-color: currentColor;
+          border-radius: 50%;
+          box-shadow: 0 0 8px currentColor;
+          animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.75); }
         }
 
         .row-arrow-action {
-          font-size: 0.82rem;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-          color: #ffffff;
+          font-size: 0.85rem;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          color: #121110;
           text-align: right;
-          transition: transform 0.3s ease, color 0.3s ease;
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
         }
-
-        /* Fullscreen Realm Environment */
         .realm-fullscreen-overlay {
           position: fixed;
           inset: 0;

@@ -40,7 +40,8 @@ export default function ThoughtWeaverModal({ isOpen, onClose, onAddNode, existin
     const newNode = {
       id: `node-${Date.now()}`,
       title: title.trim(),
-      creator: 'You (Mind Explorer)',
+      creator: 'YOU',
+      author: 'YOU',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
       category: category,
       resonanceCount: 1,

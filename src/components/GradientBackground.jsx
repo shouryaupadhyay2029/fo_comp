@@ -137,11 +137,11 @@ export function GradientBackground({
   gradientSize = '125% 125%',
   gradientOrigin = 'bottom-middle',
   colors = [
-    { color: 'rgba(246, 242, 236, 1)', stop: '0%' },
-    { color: 'rgba(242, 235, 224, 1)', stop: '25%' },
-    { color: 'rgba(236, 225, 210, 1)', stop: '50%' },
-    { color: 'rgba(244, 236, 225, 1)', stop: '75%' },
-    { color: 'rgba(246, 242, 236, 1)', stop: '100%' }
+    { color: 'rgba(252, 236, 238, 1)', stop: '0%' },
+    { color: 'rgba(248, 222, 226, 1)', stop: '25%' },
+    { color: 'rgba(242, 208, 214, 1)', stop: '50%' },
+    { color: 'rgba(250, 228, 232, 1)', stop: '75%' },
+    { color: 'rgba(252, 236, 238, 1)', stop: '100%' }
   ],
   enableNoise = true,
   noisePatternSize = 90,

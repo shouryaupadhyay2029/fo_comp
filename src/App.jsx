@@ -14,11 +14,25 @@ import ResonanceHistory from './components/ResonanceHistory';
 import CuriousDiscovery from './components/CuriousDiscovery';
 import BackToTopSeal from './components/BackToTopSeal';
 import HeroCarousel from './components/HeroCarousel';
+import PageTransitionCurtain from './components/PageTransitionCurtain';
 import YourbanaMenuOverlay from './components/YourbanaMenuOverlay';
+import DiscoverPage from './pages/DiscoverPage';
+import ExchangePage from './pages/ExchangePage';
+import RealmsPage from './pages/RealmsPage';
 import { MOCK_NODES } from './data/synapseData';
 import { synth } from './utils/audio';
 
 export default function App() {
+  const getCleanPath = (p) => {
+    const raw = (typeof p === 'string' ? p : window.location.pathname).toLowerCase();
+    const cleaned = raw.split('?')[0].split('#')[0].replace(/\/$/, '');
+    return cleaned || '/';
+  };
+
+  const [currentPath, setCurrentPath] = useState(() => getCleanPath());
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
+  const [pendingPath, setPendingPath] = useState(null);
+  const [exchangeThought, setExchangeThought] = useState(null);
   const [activeTab, setActiveTab] = useState('constellation');
   const [nodes, setNodes] = useState(MOCK_NODES);
   const [selectedNode, setSelectedNode] = useState(null);
@@ -29,11 +43,53 @@ export default function App() {
   const [isMenuOverlayOpen, setIsMenuOverlayOpen] = useState(false);
   const [userResonances, setUserResonances] = useState([MOCK_NODES[0], MOCK_NODES[2]]);
 
-  // Scroll Reveal Observer Engine for lower sections (Pure native IntersectionObserver for 60fps scroll)
-  useEffect(() => {
-    const elements = document.querySelectorAll('[data-scroll-reveal]');
+  const handleNavigateRoute = (targetPath) => {
+    const cleanTarget = getCleanPath(targetPath);
+    if (window.location.pathname !== cleanTarget) {
+      window.history.pushState(null, '', cleanTarget);
+    }
+    setCurrentPath(cleanTarget);
+    setIsPageTransitioning(true);
+    synth.playHover();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
 
-    const observerCallback = (entries, observer) => {
+  // Global Route Listener with Horizontal Slat Curtain Swipe Transition
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const newPath = getCleanPath(window.location.pathname);
+      setCurrentPath(newPath);
+      setIsPageTransitioning(true);
+      synth.playHover();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
+  // Scroll Direction Tracker (Detects Scrolling Up vs Scrolling Down)
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+
+    const handleScrollDir = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY + 2) {
+        document.body.setAttribute('data-scroll-dir', 'down');
+      } else if (currentScrollY < lastScrollY - 2) {
+        document.body.setAttribute('data-scroll-dir', 'up');
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    document.body.setAttribute('data-scroll-dir', 'down');
+    window.addEventListener('scroll', handleScrollDir, { passive: true });
+    return () => window.removeEventListener('scroll', handleScrollDir);
+  }, []);
+
+  // Scroll Reveal Observer Engine (Dynamic scroll up & down entry/exit reveal)
+  useEffect(() => {
+    const observerCallback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const delay = entry.target.getAttribute('data-delay');
@@ -41,44 +97,71 @@ export default function App() {
             entry.target.style.transitionDelay = delay;
           }
           entry.target.classList.add('is-revealed');
-          observer.unobserve(entry.target); // Unobserve once revealed to save CPU
+        } else {
+          entry.target.classList.remove('is-revealed');
         }
       });
     };
 
     const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.01,
-      rootMargin: '120px 0px 40px 0px'
+      threshold: 0.05,
+      rootMargin: '60px 0px -40px 0px'
     });
 
-    elements.forEach((el) => observer.observe(el));
+    const observeAll = () => {
+      const elements = document.querySelectorAll('[data-scroll-reveal]');
+      const viewHeight = window.innerHeight;
+      elements.forEach((el) => {
+        observer.observe(el);
+        const rect = el.getBoundingClientRect();
+        if (rect.top < viewHeight && rect.bottom > 0) {
+          el.classList.add('is-revealed');
+        }
+      });
+    };
+
+    observeAll();
+
+    const mutationObserver = new MutationObserver(() => {
+      observeAll();
+    });
+
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
-      elements.forEach((el) => observer.unobserve(el));
       observer.disconnect();
+      mutationObserver.disconnect();
     };
-  }, []);
+  }, [currentPath]);
 
   // Smooth Scroll Parallax Image Glide Engine (60fps requestAnimationFrame)
   useEffect(() => {
     let ticking = false;
 
     const updateParallax = () => {
-      const containers = document.querySelectorAll('.manifesto-pure-video-container');
       const viewHeight = window.innerHeight;
+      const parallaxTargets = [
+        { containerSel: '.manifesto-pure-video-container', imgSel: '.manifesto-clean-video', scale: 1.24, factor: -0.12 },
+        { containerSel: '.card-image-wrapper', imgSel: '.discover-hero-img', scale: 1.25, factor: -0.14 },
+        { containerSel: '.inline-mask-frame', imgSel: '.inline-visual-img', scale: 1.28, factor: -0.15 }
+      ];
 
-      containers.forEach((container) => {
-        const rect = container.getBoundingClientRect();
-        if (rect.top < viewHeight && rect.bottom > 0) {
-          const img = container.querySelector('.manifesto-clean-video');
-          if (img) {
-            const centerY = rect.top + rect.height / 2;
-            const screenCenterY = viewHeight / 2;
-            const glideY = (centerY - screenCenterY) * -0.12; // 12% smooth vertical glide
-            img.style.transform = `scale(1.24) translate3d(0, ${glideY}px, 0)`;
+      parallaxTargets.forEach(({ containerSel, imgSel, scale, factor }) => {
+        const containers = document.querySelectorAll(containerSel);
+        containers.forEach((container) => {
+          const rect = container.getBoundingClientRect();
+          if (rect.top < viewHeight && rect.bottom > 0) {
+            const img = container.querySelector(imgSel);
+            if (img) {
+              const centerY = rect.top + rect.height / 2;
+              const screenCenterY = viewHeight / 2;
+              const glideY = (centerY - screenCenterY) * factor;
+              img.style.transform = `scale(${scale}) translate3d(0, ${glideY}px, 0)`;
+            }
           }
-        }
+        });
       });
+
       ticking = false;
     };
 
@@ -95,7 +178,7 @@ export default function App() {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [currentPath]);
 
   // GSAP Hero Entrance Sequence
   useEffect(() => {
@@ -213,13 +296,19 @@ export default function App() {
         {/* Opening Vertical Slat Loader (Maximilian Kaspar style swipe) */}
         <OpeningCurtainLoader />
 
+        {/* Page Transition Horizontal Slat Curtain (Swipe Right Transition) */}
+        <PageTransitionCurtain
+          isTransitioning={isPageTransitioning}
+          onComplete={() => setIsPageTransitioning(false)}
+        />
+
         {/* Dynamic Noisy Background (Subordinated Behind Foreground) */}
         <GradientBackground
           gradientOrigin="bottom-middle"
-          noiseIntensity={0.6}
+          noiseIntensity={0.85}
           noisePatternSize={90}
-          noisePatternRefreshInterval={0}
-          noisePatternAlpha={25}
+          noisePatternRefreshInterval={2}
+          noisePatternAlpha={32}
         />
 
         {/* Minimal 6px Dot Cursor */}
@@ -233,325 +322,379 @@ export default function App() {
           onOpenResonance={() => setIsResonanceOpen(true)}
           onNavigateSection={scrollToSection}
           onOpenMenu={() => setIsMenuOverlayOpen(true)}
+          onNavigateRoute={handleNavigateRoute}
         />
 
         <main className="editorial-main-content">
-          {/* SECTION 01 — EDITORIAL HERO (TEXT LEFT / 2D ROTATING WHEEL RIGHT) */}
-          <section id="section-hero" className="asymmetric-hero-section">
-            <div className="hero-main-split">
-              {/* Left Column: Tightly Stacked Headline & Description */}
-              <div className="hero-left-column">
-                <div className="hero-top-label font-mono">
-                  <span className="editorial-number">VELOURA / 001</span>
+          {currentPath === '/discover' ? (
+            <DiscoverPage
+              allNodes={nodes}
+              onSelectNode={(thought) => {
+                setExchangeThought(thought);
+                handleNavigateRoute('/exchange');
+              }}
+            />
+          ) : currentPath === '/exchange' ? (
+            <ExchangePage
+              initialThought={exchangeThought}
+              allNodes={nodes}
+              onSelectNode={(node) => setSelectedNode(node)}
+            />
+          ) : currentPath === '/realms' ? (
+            <RealmsPage
+              onNavigateExchange={(thought) => {
+                setExchangeThought(thought);
+                handleNavigateRoute('/exchange');
+              }}
+            />
+          ) : (
+            <>
+              {/* SECTION 01 — EDITORIAL HERO (TEXT LEFT / 2D ROTATING WHEEL RIGHT) */}
+              <section id="section-hero" className="asymmetric-hero-section">
+                <div className="hero-main-split">
+                  {/* Left Column: Tightly Stacked Headline & Description */}
+                  <div className="hero-left-column">
+                    <div className="hero-top-label font-mono">
+                      <span className="editorial-number">VELOURA / 001</span>
+                    </div>
+
+                    <div className="asymmetric-title-wrapper">
+                      <h1 className="hero-display-title line-left">SOCIAL</h1>
+                      <h1 className="hero-display-title line-left">SHOULD FEEL</h1>
+                      <h1 className="hero-display-title line-left">MORE HUMAN.</h1>
+                    </div>
+
+                    <div className="hero-text-block">
+                      <p className="editorial-body">
+                        A slower social space for ideas, perspectives and meaningful connection.
+                      </p>
+                      <p className="hero-micro-desc font-mono text-muted">
+                        "VELOURA is a social space where thoughts evolve through resonance, perspective and connection."
+                      </p>
+                    </div>
+
+                    <div className="hero-action-row font-mono">
+                      <button
+                        className="action-link hero-enter-link"
+                        onClick={handleEnterMindscape}
+                      >
+                        ENTER THE MINDSCAPE ↓
+                      </button>
+                      <span className="scroll-indicator font-mono">
+                        SCROLL TO EXPLORE <span className="arrow-down">↓</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right Column: 2D Top-View Rotating Wheel (Image 2 Exact Match) */}
+                  <div className="hero-right-column">
+                    <HeroCarousel onSelectCard={() => scrollToSection('section-mindscape')} />
+                  </div>
                 </div>
 
-                <div className="asymmetric-title-wrapper">
-                  <h1 className="hero-display-title line-left">SOCIAL</h1>
-                  <h1 className="hero-display-title line-left">SHOULD FEEL</h1>
-                  <h1 className="hero-display-title line-left">MORE HUMAN.</h1>
-                </div>
+                {/* HERO BOTTOM INFINITE MARQUEE TICKER (Ditto-style with floating pill badge) */}
+                <div className="hero-bottom-marquee-banner">
+                  <div className="marquee-floating-badge font-mono">
+                    <span className="badge-dot-live"></span>
+                    <span>14,200+ THOUGHTS WEAVED IN RESONANCE</span>
+                  </div>
 
-                <div className="hero-text-block">
-                  <p className="editorial-body">
-                    A slower social space for ideas, perspectives and meaningful connection.
+                  <div className="hero-marquee-track">
+                    <div className="marquee-track-content">
+                      {/* Set 1 */}
+                      <span>SPATIAL THOUGHT MAPPING</span>
+                      <span className="marquee-star">✦</span>
+                      <span>AGENCY OVER ALGORITHM</span>
+                      <span className="marquee-star">✦</span>
+                      <span>QUALITATIVE RESONANCE</span>
+                      <span className="marquee-star">✦</span>
+                      <span>432HZ FREQUENCY REALMS</span>
+                      <span className="marquee-star">✦</span>
+                      <span>SYNCHRONOUS CO-PRESENCE</span>
+                      <span className="marquee-star">✦</span>
+                      <span>SLOW SOCIAL EVOLUTION</span>
+                      <span className="marquee-star">✦</span>
+                      <span>ORGANIC PERSPECTIVE WEAVING</span>
+                      <span className="marquee-star">✦</span>
+                      <span>MINDFUL SANCTUARY</span>
+                      <span className="marquee-star">✦</span>
+                      <span>ZERO ALGORITHMIC BIAS</span>
+                      <span className="marquee-star">✦</span>
+
+                      {/* Set 2 (Duplicate for 100% seamless loop) */}
+                      <span>SPATIAL THOUGHT MAPPING</span>
+                      <span className="marquee-star">✦</span>
+                      <span>AGENCY OVER ALGORITHM</span>
+                      <span className="marquee-star">✦</span>
+                      <span>QUALITATIVE RESONANCE</span>
+                      <span className="marquee-star">✦</span>
+                      <span>432HZ FREQUENCY REALMS</span>
+                      <span className="marquee-star">✦</span>
+                      <span>SYNCHRONOUS CO-PRESENCE</span>
+                      <span className="marquee-star">✦</span>
+                      <span>SLOW SOCIAL EVOLUTION</span>
+                      <span className="marquee-star">✦</span>
+                      <span>ORGANIC PERSPECTIVE WEAVING</span>
+                      <span className="marquee-star">✦</span>
+                      <span>MINDFUL SANCTUARY</span>
+                      <span className="marquee-star">✦</span>
+                      <span>ZERO ALGORITHMIC BIAS</span>
+                      <span className="marquee-star">✦</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION 02 — PHILOSOPHY MANIFESTO */}
+              <section id="section-philosophy" className="philosophy-manifesto-section">
+                <div className="section-container">
+                  <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                    <span className="editorial-number">02 — THE SOCIAL ARCHITECTURE MANIFESTO</span>
+                  </div>
+
+                  <div className="manifesto-vertical-list">
+                    {/* 01: AGENCY OVER ALGORITHM */}
+                    <div className="manifesto-block" data-scroll-reveal="fade-up">
+                      <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">01</span>
+
+                      <div className="manifesto-content">
+                        <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
+                          AGENCY<br />OVER<br />ALGORITHM
+                        </h2>
+                        <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
+                          "Social interaction should never be dictated by an engagement loop. In VELOURA, you navigate spatial thought maps where your curiosity determines your path—not a hidden machine learning model engineered for dopamine retention."
+                        </p>
+                        <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
+                          "Discovery belongs to human intent, not engagement predictions."
+                        </p>
+                      </div>
+
+                      {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
+                      <div
+                        className="manifesto-pure-video-container"
+                        data-scroll-reveal="fade-up"
+                        data-delay="250ms"
+                        onMouseEnter={() => synth.playTone(432, 1.2)}
+                      >
+                        <img
+                          src="/carousel/hero1.png"
+                          alt="Agency Over Algorithm Minimalist Video Loop"
+                          className="manifesto-clean-video"
+                        />
+                      </div>
+                    </div>
+
+                    <hr className="hairline-divider" data-scroll-reveal="fade-up" data-delay="100ms" />
+
+                    {/* 02: RESONANCE OVER METRICS */}
+                    <div className="manifesto-block" data-scroll-reveal="fade-up">
+                      <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">02</span>
+
+                      <div className="manifesto-content">
+                        <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
+                          RESONANCE<br />OVER<br />METRICS
+                        </h2>
+                        <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
+                          "Human thought is too nuanced to be reduced to follower counts, public like buttons, or viral clout. We replace vanity metrics with qualitative acoustic frequencies that measure depth of perspective rather than popularity."
+                        </p>
+                        <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
+                          "Connection is felt through shared resonance, never quantified by public scores."
+                        </p>
+                      </div>
+
+                      {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
+                      <div
+                        className="manifesto-pure-video-container"
+                        data-scroll-reveal="fade-up"
+                        data-delay="250ms"
+                        onMouseEnter={() => synth.playTone(528, 1.2)}
+                      >
+                        <img
+                          src="/carousel/hero2.png"
+                          alt="Resonance Over Metrics Minimalist Video Loop"
+                          className="manifesto-clean-video"
+                        />
+                      </div>
+                    </div>
+
+                    <hr className="hairline-divider" data-scroll-reveal="fade-up" data-delay="100ms" />
+
+                    {/* 03: PRESENCE OVER PERFORMANCE */}
+                    <div className="manifesto-block" data-scroll-reveal="fade-up">
+                      <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">03</span>
+
+                      <div className="manifesto-content">
+                        <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
+                          PRESENCE<br />OVER<br />PERFORMANCE
+                        </h2>
+                        <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
+                          "Social software shouldn't demand continuous content broadcasting or status performance. VELOURA creates quiet spatial sanctuaries for synchronous co-presence—where quiet exploration and reflection are enough."
+                        </p>
+                        <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
+                          "A social network where leaving with a peaceful mind is considered a success."
+                        </p>
+                      </div>
+
+                      {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
+                      <div
+                        className="manifesto-pure-video-container"
+                        data-scroll-reveal="fade-up"
+                        data-delay="250ms"
+                        onMouseEnter={() => synth.playTone(639, 1.2)}
+                      >
+                        <img
+                          src="/carousel/hero3.png"
+                          alt="Presence Over Performance Minimalist Video Loop"
+                          className="manifesto-clean-video"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION 03 — THE MINDSCAPE */}
+              <section id="section-mindscape" className="mindscape-section">
+                <div className="mindscape-header-box">
+                  <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                    <span className="editorial-number">03 — SPATIAL THOUGHT NETWORK</span>
+                  </div>
+                  <div className="mindscape-title-row">
+                    <h2 className="display-title mindscape-title" data-scroll-reveal="mask-up" data-delay="100ms">
+                      NOT AN ENDLESS FEED.<br />A LIVING FIELD OF IDEAS.
+                    </h2>
+                    <button
+                      className="action-link curious-serendipity-btn font-mono"
+                      data-scroll-reveal="scale-up"
+                      data-delay="250ms"
+                      onClick={() => setIsCuriousOpen(true)}
+                    >
+                      EXPLORE SERENDIPITY ✦
+                    </button>
+                  </div>
+                  <p className="editorial-body text-muted" data-scroll-reveal="fade-up" data-delay="300ms">
+                    "Step into a 2D spatial constellation where thoughts become connected nodes. Track how perspectives evolve, branch into new dimensions, and resonate across 432Hz audio frequencies."
                   </p>
-                  <p className="hero-micro-desc font-mono text-muted">
-                    "VELOURA is a social space where thoughts evolve through resonance, perspective and connection."
-                  </p>
                 </div>
 
-                <div className="hero-action-row font-mono">
-                  <button
-                    className="action-link hero-enter-link"
-                    onClick={handleEnterMindscape}
-                  >
-                    ENTER THE MINDSCAPE ↓
-                  </button>
-                  <span className="scroll-indicator font-mono">
-                    SCROLL TO EXPLORE <span className="arrow-down">↓</span>
-                  </span>
-                </div>
-              </div>
+                {/* Astronomical Typographic Constellation Canvas */}
+                <ConstellationMap nodes={nodes} onSelectNode={(node) => setSelectedNode(node)} />
+              </section>
 
-              {/* Right Column: 2D Top-View Rotating Wheel (Image 2 Exact Match) */}
-              <div className="hero-right-column">
-                <HeroCarousel onSelectCard={() => scrollToSection('section-mindscape')} />
-              </div>
-            </div>
+              {/* SECTION 04 — FEATURED THOUGHT SPREAD */}
+              {featuredNode && (
+                <section id="section-thought" className="featured-magazine-section">
+                  <div className="section-container">
+                    <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                      <span className="editorial-number">04 — FEATURED PERSPECTIVE</span>
+                    </div>
 
-            {/* HERO BOTTOM INFINITE MARQUEE TICKER (Ditto-style with floating pill badge) */}
-            <div className="hero-bottom-marquee-banner">
-              <div className="marquee-floating-badge font-mono">
-                <span className="badge-dot-live"></span>
-                <span>14,200+ THOUGHTS WEAVED IN RESONANCE</span>
-              </div>
-
-              <div className="hero-marquee-track">
-                <div className="marquee-track-content">
-                  {/* Set 1 */}
-                  <span>SPATIAL THOUGHT MAPPING</span>
-                  <span className="marquee-star">✦</span>
-                  <span>AGENCY OVER ALGORITHM</span>
-                  <span className="marquee-star">✦</span>
-                  <span>QUALITATIVE RESONANCE</span>
-                  <span className="marquee-star">✦</span>
-                  <span>432HZ FREQUENCY REALMS</span>
-                  <span className="marquee-star">✦</span>
-                  <span>SYNCHRONOUS CO-PRESENCE</span>
-                  <span className="marquee-star">✦</span>
-                  <span>SLOW SOCIAL EVOLUTION</span>
-                  <span className="marquee-star">✦</span>
-                  <span>ORGANIC PERSPECTIVE WEAVING</span>
-                  <span className="marquee-star">✦</span>
-                  <span>MINDFUL SANCTUARY</span>
-                  <span className="marquee-star">✦</span>
-                  <span>ZERO ALGORITHMIC BIAS</span>
-                  <span className="marquee-star">✦</span>
-
-                  {/* Set 2 (Duplicate for 100% seamless loop) */}
-                  <span>SPATIAL THOUGHT MAPPING</span>
-                  <span className="marquee-star">✦</span>
-                  <span>AGENCY OVER ALGORITHM</span>
-                  <span className="marquee-star">✦</span>
-                  <span>QUALITATIVE RESONANCE</span>
-                  <span className="marquee-star">✦</span>
-                  <span>432HZ FREQUENCY REALMS</span>
-                  <span className="marquee-star">✦</span>
-                  <span>SYNCHRONOUS CO-PRESENCE</span>
-                  <span className="marquee-star">✦</span>
-                  <span>SLOW SOCIAL EVOLUTION</span>
-                  <span className="marquee-star">✦</span>
-                  <span>ORGANIC PERSPECTIVE WEAVING</span>
-                  <span className="marquee-star">✦</span>
-                  <span>MINDFUL SANCTUARY</span>
-                  <span className="marquee-star">✦</span>
-                  <span>ZERO ALGORITHMIC BIAS</span>
-                  <span className="marquee-star">✦</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 02 — PHILOSOPHY MANIFESTO */}
-          <section id="section-philosophy" className="philosophy-manifesto-section">
-            <div className="section-container">
-              <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                <span className="editorial-number">02 — THE SOCIAL ARCHITECTURE MANIFESTO</span>
-              </div>
-
-              <div className="manifesto-vertical-list">
-                {/* 01: AGENCY OVER ALGORITHM */}
-                <div className="manifesto-block" data-scroll-reveal="fade-up">
-                  <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">01</span>
-
-                  <div className="manifesto-content">
-                    <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
-                      AGENCY<br />OVER<br />ALGORITHM
+                    <h2 className="display-title featured-magazine-title" data-scroll-reveal="mask-up" data-delay="150ms">
+                      "WHAT IF SOCIAL MEDIA WAS BUILT TO ENRICH YOUR MIND, NOT STEAL YOUR TIME?"
                     </h2>
-                    <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
-                      "Social interaction should never be dictated by an engagement loop. In VELOURA, you navigate spatial thought maps where your curiosity determines your path—not a hidden machine learning model engineered for dopamine retention."
+
+                    <div className="magazine-byline font-mono" data-scroll-reveal="fade-up" data-delay="250ms">
+                      <span>{featuredNode.creator.toUpperCase()}</span>
+                      <span className="byline-sep">/</span>
+                      <span>DIGITAL WELLBEING</span>
+                      <span className="byline-sep">/</span>
+                      <span>{featuredNode.resonanceCount} QUALITATIVE RESONANCES</span>
+                    </div>
+
+                    <p className="editorial-body magazine-body" data-scroll-reveal="fade-up" data-delay="350ms">
+                      "{featuredNode.content}"
                     </p>
-                    <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
-                      "Discovery belongs to human intent, not engagement predictions."
-                    </p>
+
+                    <div className="magazine-actions font-mono" data-scroll-reveal="fade-up" data-delay="450ms">
+                      <button className="action-link" onClick={() => handleToggleResonate(featuredNode)}>
+                        {userResonances.some((r) => r.id === featuredNode.id) ? 'RESONATING IN JOURNAL ✓' : 'RESONATE WITH THOUGHT +'}
+                      </button>
+                      <button className="action-link" onClick={() => setSelectedNode(featuredNode)}>
+                        OFFER PERSPECTIVE ↗
+                      </button>
+                      <button className="action-link" onClick={() => handleExpandFromNode(featuredNode)}>
+                        WEAVE THOUGHT BRANCH →
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* SECTION 05 — VIBE REALMS */}
+              <VibeRealms />
+
+              {/* SECTION 06 — MINDFUL SANCTUARY */}
+              <MindfulSanctuary />
+
+              {/* SECTION 07 — FINAL EDITORIAL CTA */}
+              <section id="section-final-cta" className="final-cta-section">
+                <div className="section-container text-center">
+                  <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                    <span className="editorial-number">07 — JOIN THE SLOW SOCIAL REVOLUTION</span>
                   </div>
 
-                  {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
-                  <div
-                    className="manifesto-pure-video-container"
-                    data-scroll-reveal="fade-up"
-                    data-delay="250ms"
-                    onMouseEnter={() => synth.playTone(432, 1.2)}
-                  >
-                    <img
-                      src="/carousel/hero1.png"
-                      alt="Agency Over Algorithm Minimalist Video Loop"
-                      className="manifesto-clean-video"
-                    />
+                  <h2 className="display-title final-title" data-scroll-reveal="mask-up" data-delay="150ms">
+                    DON'T POST FOR CLOUT.<br />PLANT A THOUGHT FOR RESONANCE.
+                  </h2>
+
+                  <div className="final-action-box font-mono" data-scroll-reveal="scale-up" data-delay="300ms">
+                    <button className="action-link final-weave-link" onClick={handleOpenWeaverGeneral}>
+                      WEAVE A THOUGHT TO THE MINDSCAPE →
+                    </button>
                   </div>
                 </div>
-
-                <hr className="hairline-divider" data-scroll-reveal="fade-up" data-delay="100ms" />
-
-                {/* 02: RESONANCE OVER METRICS */}
-                <div className="manifesto-block" data-scroll-reveal="fade-up">
-                  <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">02</span>
-
-                  <div className="manifesto-content">
-                    <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
-                      RESONANCE<br />OVER<br />METRICS
-                    </h2>
-                    <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
-                      "Human thought is too nuanced to be reduced to follower counts, public like buttons, or viral clout. We replace vanity metrics with qualitative acoustic frequencies that measure depth of perspective rather than popularity."
-                    </p>
-                    <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
-                      "Connection is felt through shared resonance, never quantified by public scores."
-                    </p>
-                  </div>
-
-                  {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
-                  <div
-                    className="manifesto-pure-video-container"
-                    data-scroll-reveal="fade-up"
-                    data-delay="250ms"
-                    onMouseEnter={() => synth.playTone(528, 1.2)}
-                  >
-                    <img
-                      src="/carousel/hero2.png"
-                      alt="Resonance Over Metrics Minimalist Video Loop"
-                      className="manifesto-clean-video"
-                    />
-                  </div>
-                </div>
-
-                <hr className="hairline-divider" data-scroll-reveal="fade-up" data-delay="100ms" />
-
-                {/* 03: PRESENCE OVER PERFORMANCE */}
-                <div className="manifesto-block" data-scroll-reveal="fade-up">
-                  <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">03</span>
-
-                  <div className="manifesto-content">
-                    <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
-                      PRESENCE<br />OVER<br />PERFORMANCE
-                    </h2>
-                    <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
-                      "Social software shouldn't demand continuous content broadcasting or status performance. VELOURA creates quiet spatial sanctuaries for synchronous co-presence—where quiet exploration and reflection are enough."
-                    </p>
-                    <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
-                      "A social network where leaving with a peaceful mind is considered a success."
-                    </p>
-                  </div>
-
-                  {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
-                  <div
-                    className="manifesto-pure-video-container"
-                    data-scroll-reveal="fade-up"
-                    data-delay="250ms"
-                    onMouseEnter={() => synth.playTone(639, 1.2)}
-                  >
-                    <img
-                      src="/carousel/hero3.png"
-                      alt="Presence Over Performance Minimalist Video Loop"
-                      className="manifesto-clean-video"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* SECTION 03 — THE MINDSCAPE */}
-          <section id="section-mindscape" className="mindscape-section">
-            <div className="mindscape-header-box">
-              <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                <span className="editorial-number">03 — SPATIAL THOUGHT NETWORK</span>
-              </div>
-              <div className="mindscape-title-row">
-                <h2 className="display-title mindscape-title" data-scroll-reveal="mask-up" data-delay="100ms">
-                  NOT AN ENDLESS FEED.<br />A LIVING FIELD OF IDEAS.
-                </h2>
-                <button
-                  className="action-link curious-serendipity-btn font-mono"
-                  data-scroll-reveal="scale-up"
-                  data-delay="250ms"
-                  onClick={() => setIsCuriousOpen(true)}
-                >
-                  EXPLORE SERENDIPITY ✦
-                </button>
-              </div>
-              <p className="editorial-body text-muted" data-scroll-reveal="fade-up" data-delay="300ms">
-                "Step into a 2D spatial constellation where thoughts become connected nodes. Track how perspectives evolve, branch into new dimensions, and resonate across 432Hz audio frequencies."
-              </p>
-            </div>
-
-            {/* Astronomical Typographic Constellation Canvas */}
-            <ConstellationMap nodes={nodes} onSelectNode={(node) => setSelectedNode(node)} />
-          </section>
-
-          {/* SECTION 04 — FEATURED THOUGHT SPREAD */}
-          {featuredNode && (
-            <section id="section-thought" className="featured-magazine-section">
-              <div className="section-container">
-                <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                  <span className="editorial-number">04 — FEATURED PERSPECTIVE</span>
-                </div>
-
-                <h2 className="display-title featured-magazine-title" data-scroll-reveal="mask-up" data-delay="150ms">
-                  "WHAT IF SOCIAL MEDIA WAS BUILT TO ENRICH YOUR MIND, NOT STEAL YOUR TIME?"
-                </h2>
-
-                <div className="magazine-byline font-mono" data-scroll-reveal="fade-up" data-delay="250ms">
-                  <span>{featuredNode.creator.toUpperCase()}</span>
-                  <span className="byline-sep">/</span>
-                  <span>DIGITAL WELLBEING</span>
-                  <span className="byline-sep">/</span>
-                  <span>{featuredNode.resonanceCount} QUALITATIVE RESONANCES</span>
-                </div>
-
-                <p className="editorial-body magazine-body" data-scroll-reveal="fade-up" data-delay="350ms">
-                  "{featuredNode.content}"
-                </p>
-
-                <div className="magazine-actions font-mono" data-scroll-reveal="fade-up" data-delay="450ms">
-                  <button className="action-link" onClick={() => handleToggleResonate(featuredNode)}>
-                    {userResonances.some((r) => r.id === featuredNode.id) ? 'RESONATING IN JOURNAL ✓' : 'RESONATE WITH THOUGHT +'}
-                  </button>
-                  <button className="action-link" onClick={() => setSelectedNode(featuredNode)}>
-                    OFFER PERSPECTIVE ↗
-                  </button>
-                  <button className="action-link" onClick={() => handleExpandFromNode(featuredNode)}>
-                    WEAVE THOUGHT BRANCH →
-                  </button>
-                </div>
-              </div>
-            </section>
+              </section>
+            </>
           )}
 
-          {/* SECTION 05 — VIBE REALMS */}
-          <VibeRealms />
-
-          {/* SECTION 06 — MINDFUL SANCTUARY */}
-          <MindfulSanctuary />
-
-          {/* SECTION 07 — FINAL EDITORIAL CTA */}
-          <section id="section-final-cta" className="final-cta-section">
-            <div className="section-container text-center">
-              <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                <span className="editorial-number">07 — JOIN THE SLOW SOCIAL REVOLUTION</span>
+          {/* OUTWAY-INSPIRED BOLD EDITORIAL FOOTER */}
+          <footer className="outway-editorial-footer">
+            {/* Top Grid Area */}
+            <div className="outway-footer-top">
+              {/* Left Headline */}
+              <div className="outway-footer-brand-tag">
+                <h2 className="outway-stay-headline">Stay in the know</h2>
+                <p className="outway-subtext">Subscribe to quiet resonance & quarterly thought essays.</p>
               </div>
 
-              <h2 className="display-title final-title" data-scroll-reveal="mask-up" data-delay="150ms">
-                DON'T POST FOR CLOUT.<br />PLANT A THOUGHT FOR RESONANCE.
-              </h2>
+              {/* Links Columns */}
+              <div className="outway-footer-columns font-mono">
+                <div className="outway-col">
+                  <span className="outway-col-title">NAVIGATION</span>
+                  <button onClick={() => scrollToSection('section-manifesto')}>01 MANIFESTO</button>
+                  <button onClick={() => scrollToSection('section-curation')}>02 CURATION</button>
+                  <button onClick={() => scrollToSection('section-mindscape')}>03 MINDSCAPE</button>
+                  <button onClick={() => scrollToSection('section-craftsmanship')}>04 CRAFT</button>
+                  <button onClick={() => scrollToSection('section-realms')}>05 REALMS</button>
+                </div>
 
-              <div className="final-action-box font-mono" data-scroll-reveal="scale-up" data-delay="300ms">
-                <button className="action-link final-weave-link" onClick={handleOpenWeaverGeneral}>
-                  WEAVE A THOUGHT TO THE MINDSCAPE →
-                </button>
+                <div className="outway-col">
+                  <span className="outway-col-title">EXPLORE</span>
+                  <button onClick={() => setIsResonanceOpen(true)}>RESONANCE JOURNAL</button>
+                  <button onClick={handleOpenWeaverGeneral}>WEAVE THOUGHT</button>
+                  <a href="#section-realms" onClick={(e) => { e.preventDefault(); scrollToSection('section-realms'); }}>CO-PRESENCE</a>
+                  <a href="#section-craftsmanship" onClick={(e) => { e.preventDefault(); scrollToSection('section-craftsmanship'); }}>DESIGN SYSTEM</a>
+                </div>
+
+                <div className="outway-col">
+                  <span className="outway-col-title">COMMUNITY</span>
+                  <a href="https://github.com" target="_blank" rel="noreferrer">GITHUB REPO</a>
+                  <a href="#section-sanctuary" onClick={(e) => { e.preventDefault(); scrollToSection('section-sanctuary'); }}>SANCTUARY</a>
+                  <a href="#section-manifesto" onClick={(e) => { e.preventDefault(); scrollToSection('section-manifesto'); }}>ETHOS</a>
+                  <a href="#top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>BACK TO TOP ↑</a>
+                </div>
               </div>
             </div>
-          </section>
 
-          {/* MINIMAL FOOTER */}
-          <footer className="minimal-footer font-mono">
-            <div className="footer-container">
-              <div className="footer-left">
-                <span className="footer-title">VELOURA</span>
-                <span className="footer-sub">RESONANT MINDSCAPE</span>
-                <span className="footer-quote text-muted">"Social, reimagined."</span>
-              </div>
+            {/* Bottom Meta Row */}
+            <div className="outway-footer-meta font-mono">
+              <span className="outway-lang-picker">🌐 EN ▾</span>
+              <span className="outway-copyright">©2026 VELOURA. FRONTEND ODYSSEY. ALL RIGHTS RESERVED.</span>
+            </div>
 
-              <div className="footer-center font-mono">
-                <button onClick={() => scrollToSection('section-mindscape')}>MINDSCAPE</button>
-                <button onClick={() => scrollToSection('section-realms')}>REALMS</button>
-                <button onClick={() => scrollToSection('section-sanctuary')}>SANCTUARY</button>
-                <button onClick={() => setIsResonanceOpen(true)}>RESONANCE</button>
-                <button onClick={handleOpenWeaverGeneral}>WEAVE</button>
-              </div>
-
-              <div className="footer-right text-muted">
-                <span>FRONTEND ODYSSEY / 2026</span>
-              </div>
+            {/* Giant Brand Banner Text at the Bottom */}
+            <div className="outway-giant-brand-banner">
+              VELOURA
             </div>
           </footer>
         </main>
@@ -597,10 +740,19 @@ export default function App() {
           isOpen={isMenuOverlayOpen}
           onClose={() => setIsMenuOverlayOpen(false)}
           onSelectMenuItem={(sectionId, tabId) => {
-            setActiveTab(tabId);
-            scrollToSection(sectionId);
+            if (currentPath !== '/') {
+              handleNavigateRoute('/');
+              setTimeout(() => {
+                setActiveTab(tabId);
+                scrollToSection(sectionId);
+              }, 400);
+            } else {
+              setActiveTab(tabId);
+              scrollToSection(sectionId);
+            }
           }}
           onOpenWeaver={handleOpenWeaverGeneral}
+          onNavigateRoute={handleNavigateRoute}
         />
 
         {/* Circular Rotating Seal Back To Top Button */}
@@ -1076,71 +1228,166 @@ export default function App() {
           background: var(--accent-orange);
         }
 
-        /* Minimal Footer */
-        .minimal-footer {
-          padding: 60px 40px;
-          border-top: 1px solid var(--border-hairline);
-          max-width: 1400px;
-          margin: 0 auto;
-          font-size: 0.75rem;
-        }
-
-        .footer-container {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 24px;
-        }
-
-        .footer-left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .footer-title {
-          font-family: var(--font-heading);
-          font-weight: 800;
+        /* OUTWAY-INSPIRED BOLD EDITORIAL FOOTER STYLES */
+        .outway-editorial-footer {
+          background-color: #FF4500;
           color: #121110;
-          font-size: 0.95rem;
+          padding: 48px 40px 0 40px;
+          position: relative;
+          overflow: hidden;
+          width: 100%;
         }
 
-        .footer-sub {
-          color: #68635c;
-          letter-spacing: 0.12em;
+        .outway-footer-top {
+          display: grid;
+          grid-template-columns: 1.2fr 2fr;
+          gap: 40px;
+          align-items: flex-start;
+          margin-bottom: 36px;
         }
 
-        .footer-quote {
-          font-style: italic;
+        .outway-stay-headline {
+          font-family: var(--font-sans);
+          font-size: clamp(2rem, 3.2vw, 3rem);
+          font-weight: 500;
+          color: #121110;
+          letter-spacing: -0.03em;
+          line-height: 1.05;
+          margin-bottom: 8px;
         }
 
-        .footer-center {
+        .outway-subtext {
+          font-family: var(--font-mono);
+          font-size: 0.8rem;
+          color: rgba(18, 17, 16, 0.75);
+          letter-spacing: 0.05em;
+          max-width: 300px;
+        }
+
+        .outway-footer-columns {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 32px;
+        }
+
+        .outway-col {
           display: flex;
-          gap: 24px;
+          flex-direction: column;
+          gap: 10px;
         }
 
-        .footer-center button {
+        .outway-col-title {
+          font-size: 0.78rem;
+          font-weight: 800;
+          letter-spacing: 0.15em;
+          color: #121110;
+          margin-bottom: 6px;
+          text-transform: uppercase;
+        }
+
+        .outway-col button, .outway-col a {
           background: transparent;
           border: none;
-          color: #68635c;
-          font-family: var(--font-mono);
-          font-size: 0.72rem;
-          letter-spacing: 0.15em;
-          cursor: pointer;
-          transition: color 0.3s ease;
-        }
-
-        .footer-center button:hover {
+          padding: 0;
+          text-align: left;
           color: #121110;
+          font-family: var(--font-mono);
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-decoration: none;
+          cursor: pointer;
+          transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
-        @media (max-width: 850px) {
-          .hero-bottom-grid { grid-template-columns: 1fr; gap: 24px; }
-          .hero-supporting-right { align-items: flex-start; text-align: left; }
-          .line-right { text-align: left; }
-          .manifesto-block { grid-template-columns: 1fr; gap: 16px; }
-          .footer-container { flex-direction: column; align-items: flex-start; }
+        .outway-col button:hover, .outway-col a:hover {
+          opacity: 0.6;
+          transform: translateX(4px);
+        }
+
+        .outway-footer-meta {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #121110;
+          margin-bottom: 24px;
+        }
+
+        .outway-lang-picker {
+          cursor: pointer;
+        }
+
+        .outway-giant-brand-banner {
+          font-family: var(--font-astera);
+          font-size: clamp(3.5rem, 13vw, 13rem);
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          line-height: 0.85;
+          text-transform: uppercase;
+          color: #121110;
+          width: 100%;
+          text-align: center;
+          user-select: none;
+          padding-bottom: 12px;
+        }
+
+        @media (max-width: 900px) {
+          .outway-editorial-footer {
+            padding: 40px 20px 0 20px;
+          }
+          .outway-footer-top {
+            grid-template-columns: 1fr;
+            gap: 28px;
+          }
+          .outway-footer-columns {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+          }
+          .outway-giant-brand-banner {
+            font-size: 14vw;
+            line-height: 0.9;
+          }
+        }
+
+        .not-found-container {
+          min-height: 70vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 160px 24px;
+          text-align: center;
+        }
+
+        .not-found-title {
+          font-size: clamp(2.5rem, 6vw, 5rem);
+          font-weight: 800;
+          color: #121110;
+          letter-spacing: -0.04em;
+          margin-bottom: 24px;
+        }
+
+        .btn-return-aetheria {
+          font-size: 0.85rem;
+          font-weight: 800;
+          letter-spacing: 0.14em;
+          color: var(--accent-orange);
+          text-decoration: none;
+          padding: 8px 0;
+          border-bottom: 2px solid var(--accent-orange);
+          transition: opacity 0.3s ease;
+        }
+
+        .btn-return-aetheria:hover {
+          opacity: 0.7;
+        }
+
+        @media (max-width: 550px) {
+          .outway-footer-columns {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </SmoothScrollWrapper>

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { MOCK_CATEGORIES } from '../data/synapseData';
 import { synth } from '../utils/audio';
 import ThoughtPreview from './ThoughtPreview';
+import { Noise } from './GradientBackground';
 
 export default function ConstellationMap({ nodes, onSelectNode }) {
   const canvasRef = useRef(null);
@@ -47,7 +48,6 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         hoveredNode.connections.forEach((c) => connectedIds.add(c.targetId));
       }
 
-      // 1. Monochromatic Hairline Connecting Lines
       filteredNodes.forEach((node) => {
         const floatY = Math.sin(t + node.x * 0.004) * 3;
         const floatX = Math.cos(t + node.y * 0.004) * 2;
@@ -68,13 +68,13 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
               const isEdgeDimmed = hoveredId && !isEdgeHighlighted;
 
               ctx.save();
-              ctx.globalAlpha = isEdgeDimmed ? 0.06 : isEdgeHighlighted ? 0.7 : 0.18;
+              ctx.globalAlpha = isEdgeDimmed ? 0.08 : isEdgeHighlighted ? 0.9 : 0.35;
 
               ctx.beginPath();
               ctx.moveTo(nodeX, nodeY);
               ctx.lineTo(targetX, targetY);
-              ctx.strokeStyle = isEdgeHighlighted ? '#ffffff' : 'rgba(255, 255, 255, 0.3)';
-              ctx.lineWidth = 0.5;
+              ctx.strokeStyle = isEdgeHighlighted ? '#ffffff' : 'rgba(255, 235, 230, 0.45)';
+              ctx.lineWidth = isEdgeHighlighted ? 1.5 : 0.8;
               ctx.stroke();
 
               ctx.restore();
@@ -83,7 +83,6 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         }
       });
 
-      // 2. Typographic Thought Markers (Art Installation Style)
       filteredNodes.forEach((node, index) => {
         const floatY = Math.sin(t + node.x * 0.004) * 3;
         const floatX = Math.cos(t + node.y * 0.004) * 2;
@@ -95,36 +94,25 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         const isDimmed = hoveredId && !isHovered && !isConnectedToHovered;
 
         ctx.save();
-        ctx.globalAlpha = isDimmed ? 0.12 : 1.0;
+        ctx.globalAlpha = isDimmed ? 0.2 : 1.0;
 
-        // Small hairline marker point
         ctx.beginPath();
-        ctx.arc(nx, ny, isHovered ? 4 : 2, 0, Math.PI * 2);
-        ctx.fillStyle = isHovered ? '#ff5500' : 'rgba(255, 255, 255, 0.8)';
+        ctx.arc(nx, ny, isHovered ? 4.5 : 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
         ctx.fill();
 
-        // Index tag
-        const nodeNum = String(index + 1).padStart(2, '0');
-        ctx.font = '600 10px "Space Grotesk", monospace';
-        ctx.fillStyle = isHovered ? 'var(--accent-orange)' : 'rgba(255, 255, 255, 0.35)';
-        ctx.textAlign = 'left';
-        ctx.fillText(nodeNum, nx + (isHovered ? 12 : 8), ny - 4);
+        ctx.font = '500 9px var(--font-mono)';
+        ctx.fillStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.85)';
+        ctx.fillText(String(index + 1).padStart(2, '0'), nx + 8, ny - 6);
 
-        // Typographic Thought Title
-        ctx.font = isHovered
-          ? '700 12px "Plus Jakarta Sans", sans-serif'
-          : '500 11px "Plus Jakarta Sans", sans-serif';
-        ctx.fillStyle = isHovered ? '#ffffff' : 'rgba(255, 255, 255, 0.65)';
-        ctx.textAlign = 'left';
-
-        const displayTitle = node.title.toUpperCase();
-        ctx.fillText(displayTitle, nx + (isHovered ? 12 : 8), ny + 10);
+        ctx.font = isHovered ? '700 12px var(--font-sans)' : '600 11px var(--font-sans)';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(node.title.toUpperCase(), nx + 8, ny + 8);
 
         ctx.restore();
       });
 
       ctx.restore();
-
       animationFrameId.current = requestAnimationFrame(render);
     };
 
@@ -139,74 +127,87 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
   }, [filteredNodes, transform, hoveredNode]);
 
   const handleMouseDown = (e) => {
-    if (e.target !== canvasRef.current) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
   };
 
   const handleMouseMove = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
     if (isDragging) {
-      setTransform((prev) => ({
-        ...prev,
+      setTransform({
+        ...transform,
         x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      }));
+        y: e.clientY - dragStart.y,
+      });
       return;
     }
 
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const mouseX = (e.clientX - rect.left - canvas.width / 2 - transform.x) / transform.scale;
     const mouseY = (e.clientY - rect.top - canvas.height / 2 - transform.y) / transform.scale;
 
-    const t = timeRef.current;
     let found = null;
+    const t = timeRef.current;
 
-    filteredNodes.forEach((node) => {
+    for (let node of filteredNodes) {
       const floatY = Math.sin(t + node.x * 0.004) * 3;
       const floatX = Math.cos(t + node.y * 0.004) * 2;
       const nx = node.x - 500 + floatX;
       const ny = node.y - 450 + floatY;
 
       const dist = Math.hypot(mouseX - nx, mouseY - ny);
-      if (dist <= 30) {
+      if (dist < 40) {
         found = node;
+        break;
       }
-    });
+    }
 
-    if (found && (!hoveredNode || hoveredNode.id !== found.id)) {
+    if (found !== hoveredNode) {
       setHoveredNode(found);
-      setPreviewPos({ x: e.clientX, y: e.clientY });
-      synth.playTone(found.audioFrequency || 432, 0.25);
-    } else if (found && hoveredNode) {
-      setPreviewPos({ x: e.clientX, y: e.clientY });
-    } else if (!found && hoveredNode) {
-      setHoveredNode(null);
-      setPreviewPos(null);
+      if (found) {
+        synth.playHover();
+        setPreviewPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      } else {
+        setPreviewPos(null);
+      }
+    } else if (found) {
+      setPreviewPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleZoom = (delta) => {
+    setTransform((prev) => ({
+      ...prev,
+      scale: Math.min(Math.max(prev.scale + delta, 0.6), 2.2),
+    }));
   };
 
-  const handleCanvasClick = () => {
-    if (hoveredNode) {
-      onSelectNode(hoveredNode);
-    }
-  };
-
-  const resetTransform = () => {
+  const handleReset = () => {
     setTransform({ x: 0, y: 0, scale: 1 });
+    setSelectedCategory('all');
   };
 
   return (
-    <div className="constellation-art-container">
-      {/* Category Spectrum Filter */}
-      <div className="spectrum-bar-minimal font-mono">
-        <span className="spectrum-label font-mono">SPECTRUM /</span>
+    <div
+      className="constellation-art-container"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+    >
+      <Noise patternAlpha={45} intensity={0.9} patternRefreshInterval={2} />
+
+      <div className="spectrum-bar-minimal">
+        <span className="spectrum-label">SPECTRUM /</span>
+        <button
+          className={`spectrum-tab-minimal ${selectedCategory === 'all' ? 'active' : ''}`}
+          onClick={() => setSelectedCategory('all')}
+        >
+          ALL THOUGHT SPHERES
+        </button>
         {MOCK_CATEGORIES.map((cat) => (
           <button
             key={cat.id}
@@ -218,69 +219,73 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         ))}
       </div>
 
-      {/* Canvas */}
-      <canvas
-        ref={canvasRef}
-        className={`constellation-canvas ${isDragging ? 'dragging' : ''}`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onClick={handleCanvasClick}
-      />
+      <canvas ref={canvasRef} className="constellation-canvas-art" />
 
-      {/* Controls */}
-      <div className="map-controls-minimal font-mono">
-        <button onClick={() => setTransform((p) => ({ ...p, scale: Math.min(p.scale + 0.15, 2) }))}>
-          +
-        </button>
-        <button onClick={() => setTransform((p) => ({ ...p, scale: Math.max(p.scale - 0.15, 0.6) }))}>
-          −
-        </button>
-        <button onClick={resetTransform}>RESET</button>
-      </div>
-
-      {/* Hover Preview */}
       {hoveredNode && previewPos && (
         <ThoughtPreview node={hoveredNode} position={previewPos} />
       )}
+
+      <div className="map-controls-minimal">
+        <button onClick={() => handleZoom(0.15)} title="Zoom In">+</button>
+        <button onClick={() => handleZoom(-0.15)} title="Zoom Out">-</button>
+        <button onClick={handleReset} title="Reset View">RESET</button>
+      </div>
 
       <style>{`
         .constellation-art-container {
           position: relative;
           width: 100%;
-          height: 680px;
-          border-top: 1px solid var(--border-hairline);
-          border-bottom: 1px solid var(--border-hairline);
+          height: 640px;
+          background: #E64A19;
           overflow: hidden;
-          background: transparent;
+          cursor: grab;
+          user-select: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .constellation-art-container:active {
+          cursor: grabbing;
+        }
+
+        .constellation-canvas-art {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 2;
         }
 
         .spectrum-bar-minimal {
           position: absolute;
-          top: 24px;
+          top: 28px;
           left: 40px;
           z-index: 10;
           display: flex;
           align-items: center;
-          gap: 20px;
-          font-size: 0.72rem;
+          gap: 24px;
         }
 
         .spectrum-label {
-          color: #64748b;
+          font-family: var(--font-mono);
+          font-size: 0.72rem;
+          color: rgba(255, 255, 255, 0.75);
           letter-spacing: 0.15em;
+          text-transform: uppercase;
         }
 
         .spectrum-tab-minimal {
           background: transparent;
           border: none;
-          color: #64748b;
+          color: rgba(255, 255, 255, 0.75);
           font-family: var(--font-mono);
           font-size: 0.72rem;
+          font-weight: 700;
           letter-spacing: 0.12em;
           cursor: pointer;
           transition: color 0.3s ease;
-          padding: 2px 0;
+          padding: 4px 0;
         }
 
         .spectrum-tab-minimal:hover, .spectrum-tab-minimal.active {
@@ -288,8 +293,8 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         }
 
         .spectrum-tab-minimal.active {
-          color: var(--accent-orange);
-          border-bottom: 1px solid var(--accent-orange);
+          color: #ffffff;
+          border-bottom: 2px solid #ffffff;
         }
 
         .map-controls-minimal {
@@ -303,32 +308,24 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         }
 
         .map-controls-minimal button {
-          background: transparent;
-          border: 1px solid var(--border-hairline);
-          color: #94a3b8;
-          padding: 4px 10px;
+          background: rgba(0, 0, 0, 0.25);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          color: #ffffff;
+          padding: 6px 12px;
+          border-radius: 4px;
           cursor: pointer;
           transition: all 0.3s ease;
         }
 
         .map-controls-minimal button:hover {
           border-color: #ffffff;
-          color: #ffffff;
+          background: #ffffff;
+          color: #E64A19;
         }
 
         @media (max-width: 768px) {
           .constellation-art-container {
             height: 500px;
-          }
-          .spectrum-bar-minimal {
-            left: 20px;
-            top: 16px;
-            gap: 12px;
-            flex-wrap: wrap;
-          }
-          .map-controls-minimal {
-            right: 20px;
-            bottom: 16px;
           }
         }
       `}</style>

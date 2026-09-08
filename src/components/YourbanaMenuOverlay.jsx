@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
 const MENU_ITEMS = [
-  { index: '1', title: 'MANIFESTO', sectionId: 'section-philosophy', tabId: 'philosophy' },
-  { index: '2', title: 'MINDSCAPE', sectionId: 'section-mindscape', tabId: 'constellation' },
-  { index: '3', title: 'VIBE REALMS', sectionId: 'section-realms', tabId: 'vibe-realms' },
-  { index: '4', title: 'SANCTUARY', sectionId: 'section-sanctuary', tabId: 'sanctuary' },
-  { index: '5', title: 'WEAVE THOUGHT', action: 'weaver' }
+  { index: '01', title: 'DISCOVER', route: '/discover' },
+  { index: '02', title: 'EXCHANGE', route: '/exchange' },
+  { index: '03', title: 'REALMS', route: '/realms' },
+  { index: '—', title: 'WEAVE A THOUGHT →', action: 'weaver' }
 ];
 
-export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem, onOpenWeaver }) {
+export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem, onOpenWeaver, onNavigateRoute }) {
   const [timeString, setTimeString] = useState('');
   const [shouldRender, setShouldRender] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
@@ -44,12 +43,21 @@ export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem,
 
   if (!shouldRender) return null;
 
-  const handleItemClick = (item) => {
+  const handleItemClick = (item, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     onClose();
     if (item.action === 'weaver') {
       if (onOpenWeaver) onOpenWeaver();
-    } else if (onSelectMenuItem) {
-      onSelectMenuItem(item.sectionId, item.tabId);
+    } else if (item.route) {
+      if (onNavigateRoute) {
+        onNavigateRoute(item.route);
+      } else {
+        window.history.pushState(null, '', item.route);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
     }
   };
 
@@ -73,19 +81,26 @@ export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem,
         {/* Center Main Numbered Menu List */}
         <div className="yourbana-menu-body">
           <ul className="yourbana-nav-list">
-            {MENU_ITEMS.map((item, idx) => (
-              <li
-                key={item.index}
-                className="yourbana-nav-item"
-                style={{ '--item-delay': `${idx * 0.07 + 0.15}s` }}
-                onClick={() => handleItemClick(item)}
-              >
-                <div className="nav-item-mask">
-                  <span className="nav-item-index font-heading">{item.index}</span>
-                  <span className="nav-item-title font-heading">{item.title}</span>
-                </div>
-              </li>
-            ))}
+            {MENU_ITEMS.map((item, idx) => {
+              const currentCleanPath = window.location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+              const itemCleanRoute = item.route ? item.route.toLowerCase().replace(/\/$/, '') || '/' : '';
+              const isActive = itemCleanRoute && currentCleanPath === itemCleanRoute;
+
+              return (
+                <li
+                  key={item.index}
+                  className={`yourbana-nav-item ${item.action === 'weaver' ? 'nav-item-weaver' : ''} ${isActive ? 'is-active-route' : ''}`}
+                  style={{ '--item-delay': `${idx * 0.07 + 0.15}s` }}
+                  onClick={(e) => handleItemClick(item, e)}
+                >
+                  <div className="nav-item-mask">
+                    <span className="nav-item-index font-heading">{item.index}</span>
+                    <span className="nav-item-title font-heading">{item.title}</span>
+                    {isActive && <span className="nav-active-tag font-mono">ACTIVE</span>}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -98,9 +113,35 @@ export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem,
           </div>
 
           <div className="footer-center-socials">
-            <a href="#section-philosophy" onClick={onClose}>MANIFESTO</a>
-            <a href="#section-mindscape" onClick={onClose}>SYNAPSE</a>
-            <a href="#section-realms" onClick={onClose}>REALMS</a>
+            <button
+              className="menu-footer-btn"
+              onClick={() => {
+                onClose();
+                if (onNavigateRoute) onNavigateRoute('/');
+                if (onSelectMenuItem) onSelectMenuItem('section-philosophy');
+              }}
+            >
+              MANIFESTO
+            </button>
+            <button
+              className="menu-footer-btn"
+              onClick={() => {
+                onClose();
+                if (onNavigateRoute) onNavigateRoute('/');
+                if (onSelectMenuItem) onSelectMenuItem('section-mindscape');
+              }}
+            >
+              SYNAPSE
+            </button>
+            <button
+              className="menu-footer-btn"
+              onClick={() => {
+                onClose();
+                if (onNavigateRoute) onNavigateRoute('/realms');
+              }}
+            >
+              REALMS
+            </button>
           </div>
 
           <div className="footer-right-clock">
@@ -290,8 +331,20 @@ export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem,
           transition: color 0.25s ease;
         }
 
-        .yourbana-nav-item:hover .nav-item-index {
-          color: #ffffff;
+        .yourbana-nav-item.nav-item-weaver {
+          margin-top: 24px;
+          padding-top: 24px;
+          border-top: 1px solid rgba(13, 9, 5, 0.2);
+        }
+
+        .nav-active-tag {
+          font-size: 0.75rem;
+          font-weight: 800;
+          letter-spacing: 0.15em;
+          color: #0d0905;
+          align-self: center;
+          padding: 2px 8px;
+          border-bottom: 2px solid #0d0905;
         }
 
         .nav-item-title {
@@ -347,13 +400,23 @@ export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem,
           gap: 28px;
         }
 
-        .footer-center-socials a {
+        .footer-center-socials a,
+        .menu-footer-btn {
+          background: transparent;
+          border: none;
+          padding: 0;
+          font-family: inherit;
+          font-size: inherit;
+          font-weight: inherit;
+          letter-spacing: inherit;
           color: #0d0905;
           text-decoration: none;
+          cursor: pointer;
           transition: opacity 0.2s ease;
         }
 
-        .footer-center-socials a:hover {
+        .footer-center-socials a:hover,
+        .menu-footer-btn:hover {
           opacity: 0.65;
         }
 

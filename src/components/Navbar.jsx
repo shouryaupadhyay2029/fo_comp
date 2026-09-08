@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { synth } from '../utils/audio';
 
-export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenResonance, onNavigateSection, onOpenMenu }) {
+export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenResonance, onNavigateSection, onOpenMenu, onNavigateRoute }) {
   const [isAudioActive, setIsAudioActive] = useState(false);
 
   const toggleAudio = () => {
@@ -34,7 +34,17 @@ export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenRe
         </div>
 
         {/* Center Brand Name */}
-        <div className="nav-brand-center" onClick={() => handleNavClick('section-hero', 'constellation')}>
+        <div 
+          className="nav-brand-center" 
+          onClick={() => {
+            if (onNavigateRoute) {
+              onNavigateRoute('/');
+            } else {
+              window.history.pushState(null, '', '/');
+              window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+          }}
+        >
           <span className="brand-title-clean">VELOURA</span>
         </div>
 
