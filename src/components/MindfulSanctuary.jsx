@@ -70,21 +70,21 @@ export default function MindfulSanctuary() {
         ) : (
           <>
             {/* Section Number */}
-            <div className="section-meta font-mono">
-              <span className="editorial-number">06 — COGNITIVE QUIET</span>
+            <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+              <span className="editorial-number">06 — DIGITAL SANCTUARY & FULFILLED DEPARTURE</span>
             </div>
 
             {/* Large Statement */}
-            <h2 className="display-title quiet-title">
-              YOU DON'T<br />HAVE TO STAY.
+            <h2 className="display-title quiet-title" data-scroll-reveal="mask-up" data-delay="150ms">
+              SOCIAL MEDIA THAT<br />CELEBRATES YOUR LEAVING.
             </h2>
 
-            <p className="editorial-body text-muted center-body">
-              Most social platforms measure success by how long you remain. VELOURA considers leaving a successful outcome.
+            <p className="editorial-body text-muted center-body" data-scroll-reveal="fade-up" data-delay="300ms">
+              Traditional social platforms measure victory by how many hours they trap your attention in endless doom-scrolling loops. VELOURA considers leaving with a quiet, calm, and inspired mind the ultimate mark of human-centered software design.
             </p>
 
             {/* Minimal Action Link */}
-            <div className="breathing-trigger-container font-mono">
+            <div className="breathing-trigger-container font-mono" data-scroll-reveal="scale-up" data-delay="400ms">
               <button
                 className={`action-link ${isBreathingActive ? 'active-link' : ''}`}
                 onClick={() => setIsBreathingActive(!isBreathingActive)}

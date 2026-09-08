@@ -20,16 +20,16 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
     <section id="section-realms" className="editorial-section">
       <div className="section-container">
         {/* Section Number */}
-        <div className="section-meta font-mono">
-          <span className="editorial-number">05 — SPATIAL REALMS</span>
+        <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+          <span className="editorial-number">05 — ACOUSTIC THOUGHT REALMS</span>
         </div>
 
-        <h2 className="display-title">
-          SYNCHRONOUS<br />PRESENCE.
+        <h2 className="display-title" data-scroll-reveal="mask-up" data-delay="100ms">
+          SYNCHRONOUS<br />SOCIAL REALMS.
         </h2>
 
-        <p className="editorial-body text-muted" style={{ marginTop: '20px', marginBottom: '60px' }}>
-          "Enter a field of ideas, not a community."
+        <p className="editorial-body text-muted" data-scroll-reveal="fade-up" data-delay="200ms" style={{ marginTop: '20px', marginBottom: '60px' }}>
+          "Gather in real-time acoustic environments where thinkers explore ideas together in quiet co-presence, free from algorithmic noise or viral clout dynamics."
         </p>
 
         {/* Art Catalogue Index Rows */}
@@ -41,6 +41,8 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
               <div
                 key={realm.id}
                 className="catalogue-row"
+                data-scroll-reveal="slide-left"
+                data-delay={`${(idx + 1) * 120}ms`}
                 onClick={() => handleSelectRealm(realm)}
               >
                 <span className="row-number font-mono">{realmNum}</span>

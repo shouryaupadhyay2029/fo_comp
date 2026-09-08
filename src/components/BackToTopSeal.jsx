@@ -32,11 +32,11 @@ export default function BackToTopSeal() {
         <svg className="seal-text-svg" viewBox="0 0 120 120">
           <path
             id="sealTextPath"
-            d="M 60, 60 m -40, 0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0"
+            d="M 60, 60 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
             fill="none"
           />
-          <text fill="#f7b233" fontSize="9" fontWeight="800" letterSpacing="0.16em">
-            <textPath href="#sealTextPath" startOffset="0%">
+          <text fill="#f7b233" fontSize="7.2" fontWeight="800" letterSpacing="0.12em">
+            <textPath href="#sealTextPath" startOffset="0%" textLength="232" lengthAdjust="spacingAndGlyphs">
               • BACK TO TOP • BACK TO TOP •
             </textPath>
           </text>

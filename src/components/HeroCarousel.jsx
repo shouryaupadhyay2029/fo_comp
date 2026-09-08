@@ -93,12 +93,12 @@ export default function HeroCarousel({ onSelectCard }) {
       <div className="wheel-center-seal">
         <svg viewBox="0 0 160 160" className="seal-rotating-text-svg">
           <path
-            id="sealTextPath"
-            d="M 80, 80 m -58, 0 a 58,58 0 1,1 116,0 a 58,58 0 1,1 -116,0"
+            id="heroSealTextPath"
+            d="M 80, 80 m -56, 0 a 56,56 0 1,1 112,0 a 56,56 0 1,1 -112,0"
             fill="none"
           />
           <text className="seal-text-path">
-            <textPath href="#sealTextPath" startOffset="0%">
+            <textPath href="#heroSealTextPath" startOffset="0%" textLength="351" lengthAdjust="spacingAndGlyphs">
               • ARCHITECTURAL EQUILIBRIUM • SILENT HARMONY •
             </textPath>
           </text>
@@ -255,7 +255,27 @@ export default function HeroCarousel({ onSelectCard }) {
           box-shadow: 0 14px 30px rgba(0, 0, 0, 0.15);
           border: 2px solid rgba(255, 255, 255, 0.85);
           background: #1a1917;
-          transition: border-color 0.4s ease, box-shadow 0.4s ease;
+          transition: border-color 0.4s ease, box-shadow 0.4s ease, border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          animation: cardShapeMorph 9s ease-in-out infinite alternate;
+          animation-delay: calc(var(--id) * -1.15s);
+        }
+
+        @keyframes cardShapeMorph {
+          0% {
+            border-radius: 38px 18px 38px 18px;
+          }
+          25% {
+            border-radius: 24px 36px 20px 34px;
+          }
+          50% {
+            border-radius: 36px 22px 34px 20px;
+          }
+          75% {
+            border-radius: 20px 34px 24px 36px;
+          }
+          100% {
+            border-radius: 18px 38px 18px 38px;
+          }
         }
 
         .wheel-squircle-card.hovered .squircle-image-wrap {

@@ -16,6 +16,7 @@ import BackToTopSeal from './components/BackToTopSeal';
 import HeroCarousel from './components/HeroCarousel';
 import YourbanaMenuOverlay from './components/YourbanaMenuOverlay';
 import { MOCK_NODES } from './data/synapseData';
+import { synth } from './utils/audio';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('constellation');
@@ -27,6 +28,52 @@ export default function App() {
   const [isCuriousOpen, setIsCuriousOpen] = useState(false);
   const [isMenuOverlayOpen, setIsMenuOverlayOpen] = useState(false);
   const [userResonances, setUserResonances] = useState([MOCK_NODES[0], MOCK_NODES[2]]);
+
+  // Scroll Reveal Observer Engine for lower sections
+  useEffect(() => {
+    const elements = document.querySelectorAll('[data-scroll-reveal]');
+
+    const checkInitialInView = () => {
+      elements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= window.innerHeight * 0.92) {
+          const delay = el.getAttribute('data-delay');
+          if (delay) {
+            el.style.transitionDelay = delay;
+          }
+          el.classList.add('is-revealed');
+        }
+      });
+    };
+
+    const observerCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const delay = entry.target.getAttribute('data-delay');
+          if (delay) {
+            entry.target.style.transitionDelay = delay;
+          }
+          entry.target.classList.add('is-revealed');
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      threshold: 0.02,
+      rootMargin: '120px 0px 0px 0px'
+    });
+
+    elements.forEach((el) => observer.observe(el));
+    checkInitialInView();
+
+    window.addEventListener('scroll', checkInitialInView, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', checkInitialInView);
+      elements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, []);
 
   // GSAP Hero Entrance Sequence
   useEffect(() => {
@@ -266,60 +313,105 @@ export default function App() {
           {/* SECTION 02 — PHILOSOPHY MANIFESTO */}
           <section id="section-philosophy" className="philosophy-manifesto-section">
             <div className="section-container">
-              <div className="section-meta font-mono">
-                <span className="editorial-number">02 — PHILOSOPHY</span>
+              <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                <span className="editorial-number">02 — THE SOCIAL ARCHITECTURE MANIFESTO</span>
               </div>
 
               <div className="manifesto-vertical-list">
-                {/* 01 */}
-                <div className="manifesto-block">
-                  <span className="manifesto-num font-mono">01</span>
+                {/* 01: AGENCY OVER ALGORITHM */}
+                <div className="manifesto-block" data-scroll-reveal="fade-up">
+                  <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">01</span>
+
                   <div className="manifesto-content">
-                    <h2 className="display-title manifesto-title">
+                    <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
                       AGENCY<br />OVER<br />ALGORITHM
                     </h2>
-                    <p className="editorial-body manifesto-desc">
-                      "Your attention should remain yours. Navigation across spatial thought maps replaces endless algorithmic addiction."
+                    <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
+                      "Social interaction should never be dictated by an engagement loop. In VELOURA, you navigate spatial thought maps where your curiosity determines your path—not a hidden machine learning model engineered for dopamine retention."
                     </p>
-                    <p className="manifesto-impl-line font-mono text-muted">
-                      "Discovery begins with curiosity, not an engagement prediction."
+                    <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
+                      "Discovery belongs to human intent, not engagement predictions."
                     </p>
+                  </div>
+
+                  {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
+                  <div
+                    className="manifesto-pure-video-container"
+                    data-scroll-reveal="fade-up"
+                    data-delay="250ms"
+                    onMouseEnter={() => synth.playTone(432, 1.2)}
+                  >
+                    <img
+                      src="/carousel/hero1.png"
+                      alt="Agency Over Algorithm Minimalist Video Loop"
+                      className="manifesto-clean-video"
+                    />
                   </div>
                 </div>
 
-                <hr className="hairline-divider" />
+                <hr className="hairline-divider" data-scroll-reveal="fade-up" data-delay="100ms" />
 
-                {/* 02 */}
-                <div className="manifesto-block">
-                  <span className="manifesto-num font-mono">02</span>
+                {/* 02: RESONANCE OVER METRICS */}
+                <div className="manifesto-block" data-scroll-reveal="fade-up">
+                  <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">02</span>
+
                   <div className="manifesto-content">
-                    <h2 className="display-title manifesto-title">
+                    <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
                       RESONANCE<br />OVER<br />METRICS
                     </h2>
-                    <p className="editorial-body manifesto-desc">
-                      "Connection does not need to become a number. Quantified follower counts and like buttons are replaced by qualitative acoustic waves."
+                    <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
+                      "Human thought is too nuanced to be reduced to follower counts, public like buttons, or viral clout. We replace vanity metrics with qualitative acoustic frequencies that measure depth of perspective rather than popularity."
                     </p>
-                    <p className="manifesto-impl-line font-mono text-muted">
-                      "Connection is expressed through resonance, not popularity."
+                    <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
+                      "Connection is felt through shared resonance, never quantified by public scores."
                     </p>
+                  </div>
+
+                  {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
+                  <div
+                    className="manifesto-pure-video-container"
+                    data-scroll-reveal="fade-up"
+                    data-delay="250ms"
+                    onMouseEnter={() => synth.playTone(528, 1.2)}
+                  >
+                    <img
+                      src="/carousel/hero2.png"
+                      alt="Resonance Over Metrics Minimalist Video Loop"
+                      className="manifesto-clean-video"
+                    />
                   </div>
                 </div>
 
-                <hr className="hairline-divider" />
+                <hr className="hairline-divider" data-scroll-reveal="fade-up" data-delay="100ms" />
 
-                {/* 03 */}
-                <div className="manifesto-block">
-                  <span className="manifesto-num font-mono">03</span>
+                {/* 03: PRESENCE OVER PERFORMANCE */}
+                <div className="manifesto-block" data-scroll-reveal="fade-up">
+                  <span className="manifesto-num font-mono" data-scroll-reveal="slide-right" data-delay="100ms">03</span>
+
                   <div className="manifesto-content">
-                    <h2 className="display-title manifesto-title">
+                    <h2 className="display-title manifesto-title" data-scroll-reveal="fade-up" data-delay="150ms">
                       PRESENCE<br />OVER<br />PERFORMANCE
                     </h2>
-                    <p className="editorial-body manifesto-desc">
-                      "Being here should be enough. Shared quiet focus and synchronous co-presence nourish the mind."
+                    <p className="editorial-body manifesto-desc" data-scroll-reveal="fade-up" data-delay="250ms">
+                      "Social software shouldn't demand continuous content broadcasting or status performance. VELOURA creates quiet spatial sanctuaries for synchronous co-presence—where quiet exploration and reflection are enough."
                     </p>
-                    <p className="manifesto-impl-line font-mono text-muted">
-                      "The experience has an ending."
+                    <p className="manifesto-impl-line font-mono text-muted" data-scroll-reveal="fade-up" data-delay="350ms">
+                      "A social network where leaving with a peaceful mind is considered a success."
                     </p>
+                  </div>
+
+                  {/* RIGHT SIDE PURE BORDERLESS VIDEO (NO CARDS, NO BOXES) */}
+                  <div
+                    className="manifesto-pure-video-container"
+                    data-scroll-reveal="fade-up"
+                    data-delay="250ms"
+                    onMouseEnter={() => synth.playTone(639, 1.2)}
+                  >
+                    <img
+                      src="/carousel/hero3.png"
+                      alt="Presence Over Performance Minimalist Video Loop"
+                      className="manifesto-clean-video"
+                    />
                   </div>
                 </div>
               </div>
@@ -329,20 +421,24 @@ export default function App() {
           {/* SECTION 03 — THE MINDSCAPE */}
           <section id="section-mindscape" className="mindscape-section">
             <div className="mindscape-header-box">
-              <div className="section-meta font-mono">
-                <span className="editorial-number">03 — THE MINDSCAPE</span>
+              <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                <span className="editorial-number">03 — SPATIAL THOUGHT NETWORK</span>
               </div>
               <div className="mindscape-title-row">
-                <h2 className="display-title mindscape-title">NOT A FEED.<br />A FIELD OF THOUGHT.</h2>
+                <h2 className="display-title mindscape-title" data-scroll-reveal="mask-up" data-delay="100ms">
+                  NOT AN ENDLESS FEED.<br />A LIVING FIELD OF IDEAS.
+                </h2>
                 <button
                   className="action-link curious-serendipity-btn font-mono"
+                  data-scroll-reveal="scale-up"
+                  data-delay="250ms"
                   onClick={() => setIsCuriousOpen(true)}
                 >
-                  I'M CURIOUS ✦
+                  EXPLORE SERENDIPITY ✦
                 </button>
               </div>
-              <p className="editorial-body text-muted">
-                "Explore ideas, see where they resonate, and follow where they evolve."
+              <p className="editorial-body text-muted" data-scroll-reveal="fade-up" data-delay="300ms">
+                "Step into a 2D spatial constellation where thoughts become connected nodes. Track how perspectives evolve, branch into new dimensions, and resonate across 432Hz audio frequencies."
               </p>
             </div>
 
@@ -354,35 +450,35 @@ export default function App() {
           {featuredNode && (
             <section id="section-thought" className="featured-magazine-section">
               <div className="section-container">
-                <div className="section-meta font-mono">
-                  <span className="editorial-number">04 — FEATURED THOUGHT</span>
+                <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                  <span className="editorial-number">04 — FEATURED PERSPECTIVE</span>
                 </div>
 
-                <h2 className="display-title featured-magazine-title">
-                  "WHAT IF SOCIAL MEDIA DIDN'T WANT YOUR ATTENTION?"
+                <h2 className="display-title featured-magazine-title" data-scroll-reveal="mask-up" data-delay="150ms">
+                  "WHAT IF SOCIAL MEDIA WAS BUILT TO ENRICH YOUR MIND, NOT STEAL YOUR TIME?"
                 </h2>
 
-                <div className="magazine-byline font-mono">
+                <div className="magazine-byline font-mono" data-scroll-reveal="fade-up" data-delay="250ms">
                   <span>{featuredNode.creator.toUpperCase()}</span>
                   <span className="byline-sep">/</span>
-                  <span>DIGITAL CULTURE</span>
+                  <span>DIGITAL WELLBEING</span>
                   <span className="byline-sep">/</span>
-                  <span>{featuredNode.resonanceCount} RESONANCES</span>
+                  <span>{featuredNode.resonanceCount} QUALITATIVE RESONANCES</span>
                 </div>
 
-                <p className="editorial-body magazine-body">
-                  "{featuredNode.shortSentence}"
+                <p className="editorial-body magazine-body" data-scroll-reveal="fade-up" data-delay="350ms">
+                  "{featuredNode.content}"
                 </p>
 
-                <div className="magazine-actions font-mono">
+                <div className="magazine-actions font-mono" data-scroll-reveal="fade-up" data-delay="450ms">
                   <button className="action-link" onClick={() => handleToggleResonate(featuredNode)}>
-                    {userResonances.some((r) => r.id === featuredNode.id) ? 'RESONATED ✓' : 'RESONATE +'}
+                    {userResonances.some((r) => r.id === featuredNode.id) ? 'RESONATING IN JOURNAL ✓' : 'RESONATE WITH THOUGHT +'}
                   </button>
                   <button className="action-link" onClick={() => setSelectedNode(featuredNode)}>
                     OFFER PERSPECTIVE ↗
                   </button>
                   <button className="action-link" onClick={() => handleExpandFromNode(featuredNode)}>
-                    EXPAND THOUGHT →
+                    WEAVE THOUGHT BRANCH →
                   </button>
                 </div>
               </div>
@@ -398,17 +494,17 @@ export default function App() {
           {/* SECTION 07 — FINAL EDITORIAL CTA */}
           <section id="section-final-cta" className="final-cta-section">
             <div className="section-container text-center">
-              <div className="section-meta font-mono">
-                <span className="editorial-number">07 — CONCLUSION</span>
+              <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                <span className="editorial-number">07 — JOIN THE SLOW SOCIAL REVOLUTION</span>
               </div>
 
-              <h2 className="display-title final-title">
-                DON'T POST.<br />PLANT A THOUGHT.
+              <h2 className="display-title final-title" data-scroll-reveal="mask-up" data-delay="150ms">
+                DON'T POST FOR CLOUT.<br />PLANT A THOUGHT FOR RESONANCE.
               </h2>
 
-              <div className="final-action-box font-mono">
+              <div className="final-action-box font-mono" data-scroll-reveal="scale-up" data-delay="300ms">
                 <button className="action-link final-weave-link" onClick={handleOpenWeaverGeneral}>
-                  WEAVE A THOUGHT →
+                  WEAVE A THOUGHT TO THE MINDSCAPE →
                 </button>
               </div>
             </div>
@@ -793,7 +889,7 @@ export default function App() {
         /* Philosophy Manifesto Layout */
         .philosophy-manifesto-section {
           padding: var(--section-padding-y) 40px;
-          max-width: 1400px;
+          max-width: 1440px;
           margin: 0 auto;
           border-top: 1px solid var(--border-hairline);
         }
@@ -806,9 +902,10 @@ export default function App() {
 
         .manifesto-block {
           display: grid;
-          grid-template-columns: 100px 1fr;
-          gap: 40px;
-          padding: 40px 0;
+          grid-template-columns: 80px 1.1fr 1fr;
+          gap: 48px;
+          align-items: center;
+          padding: 60px 0;
         }
 
         .manifesto-num {
@@ -824,6 +921,44 @@ export default function App() {
 
         .manifesto-desc {
           max-width: 520px;
+        }
+
+        /* Pure Borderless Editorial Video Container */
+        .manifesto-pure-video-container {
+          position: relative;
+          width: 100%;
+          border-radius: 12px;
+          overflow: hidden;
+          background: transparent;
+          box-shadow: none;
+          border: none;
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .manifesto-pure-video-container:hover {
+          transform: translateY(-3px);
+        }
+
+        .manifesto-clean-video {
+          width: 100%;
+          aspect-ratio: 4 / 3;
+          object-fit: cover;
+          border-radius: 12px;
+          display: block;
+          filter: grayscale(100%) contrast(105%) brightness(0.95);
+          transition: filter 0.6s ease, transform 0.6s ease;
+        }
+
+        .manifesto-pure-video-container:hover .manifesto-clean-video {
+          filter: grayscale(40%) contrast(105%) brightness(1);
+          transform: scale(1.02);
+        }
+
+        @media (max-width: 1100px) {
+          .manifesto-block {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
         }
 
         /* Mindscape Section */
