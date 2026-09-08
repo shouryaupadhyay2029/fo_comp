@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { GradientBackground } from './components/GradientBackground';
 import SmoothScrollWrapper from './components/SmoothScrollWrapper';
 import CustomCursor from './components/CustomCursor';
+import OpeningCurtainLoader from './components/OpeningCurtainLoader';
 import Navbar from './components/Navbar';
 import ConstellationMap from './components/ConstellationMap';
 import VibeRealms from './components/VibeRealms';
@@ -140,6 +141,9 @@ export default function App() {
   return (
     <SmoothScrollWrapper>
       <div className="app-main-wrapper">
+        {/* Opening Vertical Slat Loader (Maximilian Kaspar style swipe) */}
+        <OpeningCurtainLoader />
+
         {/* Dynamic Noisy Background (Subordinated Behind Foreground) */}
         <GradientBackground
           gradientOrigin="bottom-middle"
