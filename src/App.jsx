@@ -29,24 +29,11 @@ export default function App() {
   const [isMenuOverlayOpen, setIsMenuOverlayOpen] = useState(false);
   const [userResonances, setUserResonances] = useState([MOCK_NODES[0], MOCK_NODES[2]]);
 
-  // Scroll Reveal Observer Engine for lower sections
+  // Scroll Reveal Observer Engine for lower sections (Pure native IntersectionObserver for 60fps scroll)
   useEffect(() => {
     const elements = document.querySelectorAll('[data-scroll-reveal]');
 
-    const checkInitialInView = () => {
-      elements.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.top <= window.innerHeight * 0.92) {
-          const delay = el.getAttribute('data-delay');
-          if (delay) {
-            el.style.transitionDelay = delay;
-          }
-          el.classList.add('is-revealed');
-        }
-      });
-    };
-
-    const observerCallback = (entries) => {
+    const observerCallback = (entries, observer) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const delay = entry.target.getAttribute('data-delay');
@@ -54,22 +41,19 @@ export default function App() {
             entry.target.style.transitionDelay = delay;
           }
           entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target); // Unobserve once revealed to save CPU
         }
       });
     };
 
     const observer = new IntersectionObserver(observerCallback, {
-      threshold: 0.02,
-      rootMargin: '120px 0px 0px 0px'
+      threshold: 0.01,
+      rootMargin: '120px 0px 40px 0px'
     });
 
     elements.forEach((el) => observer.observe(el));
-    checkInitialInView();
-
-    window.addEventListener('scroll', checkInitialInView, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', checkInitialInView);
       elements.forEach((el) => observer.unobserve(el));
       observer.disconnect();
     };
@@ -194,10 +178,10 @@ export default function App() {
         {/* Dynamic Noisy Background (Subordinated Behind Foreground) */}
         <GradientBackground
           gradientOrigin="bottom-middle"
-          noiseIntensity={0.8}
+          noiseIntensity={0.6}
           noisePatternSize={90}
-          noisePatternRefreshInterval={2}
-          noisePatternAlpha={35}
+          noisePatternRefreshInterval={0}
+          noisePatternAlpha={25}
         />
 
         {/* Minimal 6px Dot Cursor */}

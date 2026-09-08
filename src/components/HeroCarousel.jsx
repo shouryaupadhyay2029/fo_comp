@@ -284,18 +284,15 @@ export default function HeroCarousel({ onSelectCard }) {
         }
 
         .squircle-img {
-          width: 122%;
-          height: 122%;
+          width: 100%;
+          height: 100%;
           max-width: none;
           object-fit: cover;
           display: block;
-          margin-top: -11%;
-          margin-left: -11%;
           filter: grayscale(100%) contrast(105%) brightness(0.92);
           opacity: 0.88;
-          animation: innerImagePan 10s ease-in-out infinite alternate;
-          animation-delay: calc(var(--id) * -1.25s);
-          transition: filter 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          will-change: transform, filter;
+          transition: filter 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .wheel-squircle-card:hover .squircle-img,

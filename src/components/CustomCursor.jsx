@@ -8,6 +8,7 @@ export default function CustomCursor() {
   const [isVisible, setIsVisible] = useState(false);
 
   const posRef = useRef({ targetX: -100, targetY: -100, currentX: -100, currentY: -100 });
+  const isHoveredRef = useRef(false);
 
   useEffect(() => {
     document.body.classList.add('custom-cursor-active');
@@ -15,13 +16,15 @@ export default function CustomCursor() {
     const handleMouseMove = (e) => {
       posRef.current.targetX = e.clientX;
       posRef.current.targetY = e.clientY;
-      setIsVisible(true);
+      if (!isVisible) setIsVisible(true);
 
-      const target = e.target;
-      const interactiveEl = target.closest('button, a, .action-link, .wheel-squircle-card, .nav-brand-center, .yourbana-nav-item, .marquee-floating-badge, .constellation-node, .realm-card, .sanctuary-card');
+      const interactiveEl = e.target.closest('button, a, .action-link, .wheel-squircle-card, .nav-brand-center, .yourbana-nav-item, .marquee-floating-badge, .constellation-node, .realm-card, .sanctuary-card');
 
       if (interactiveEl) {
-        setIsHovered(true);
+        if (!isHoveredRef.current) {
+          isHoveredRef.current = true;
+          setIsHovered(true);
+        }
         if (interactiveEl.classList.contains('wheel-squircle-card')) {
           setHoverText('VIEW');
         } else if (interactiveEl.classList.contains('yourbana-nav-item')) {
@@ -34,8 +37,11 @@ export default function CustomCursor() {
           setHoverText('');
         }
       } else {
-        setIsHovered(false);
-        setHoverText('');
+        if (isHoveredRef.current) {
+          isHoveredRef.current = false;
+          setIsHovered(false);
+          setHoverText('');
+        }
       }
     };
 
@@ -43,20 +49,26 @@ export default function CustomCursor() {
       setIsVisible(false);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     document.addEventListener('mouseleave', handleMouseLeave);
 
     let animId;
     const renderLoop = () => {
       const { targetX, targetY, currentX, currentY } = posRef.current;
-      posRef.current.currentX += (targetX - currentX) * 0.18;
-      posRef.current.currentY += (targetY - currentY) * 0.18;
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
 
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${posRef.current.currentX}px, ${posRef.current.currentY}px, 0) translate(-50%, -50%) scale(${isHovered ? 2.2 : 1})`;
-      }
-      if (dotRef.current) {
-        dotRef.current.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) translate(-50%, -50%) scale(${isHovered ? 0 : 1})`;
+      // Only calculate lerp if moving
+      if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
+        posRef.current.currentX += dx * 0.22;
+        posRef.current.currentY += dy * 0.22;
+
+        if (cursorRef.current) {
+          cursorRef.current.style.transform = `translate3d(${posRef.current.currentX}px, ${posRef.current.currentY}px, 0) translate(-50%, -50%) scale(${isHoveredRef.current ? 2.2 : 1})`;
+        }
+        if (dotRef.current) {
+          dotRef.current.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) translate(-50%, -50%) scale(${isHoveredRef.current ? 0 : 1})`;
+        }
       }
 
       animId = requestAnimationFrame(renderLoop);
@@ -69,7 +81,7 @@ export default function CustomCursor() {
       document.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animId);
     };
-  }, [isHovered]);
+  }, []);
 
   if (!isVisible) return null;
 
