@@ -59,6 +59,44 @@ export default function App() {
     };
   }, []);
 
+  // Smooth Scroll Parallax Image Glide Engine (60fps requestAnimationFrame)
+  useEffect(() => {
+    let ticking = false;
+
+    const updateParallax = () => {
+      const containers = document.querySelectorAll('.manifesto-pure-video-container');
+      const viewHeight = window.innerHeight;
+
+      containers.forEach((container) => {
+        const rect = container.getBoundingClientRect();
+        if (rect.top < viewHeight && rect.bottom > 0) {
+          const img = container.querySelector('.manifesto-clean-video');
+          if (img) {
+            const centerY = rect.top + rect.height / 2;
+            const screenCenterY = viewHeight / 2;
+            const glideY = (centerY - screenCenterY) * -0.12; // 12% smooth vertical glide
+            img.style.transform = `scale(1.24) translate3d(0, ${glideY}px, 0)`;
+          }
+        }
+      });
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    updateParallax();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   // GSAP Hero Entrance Sequence
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -907,35 +945,36 @@ export default function App() {
           max-width: 520px;
         }
 
-        /* Pure Borderless Editorial Video Container */
+        /* Pure Borderless Editorial Video Container with Parallax Glide */
         .manifesto-pure-video-container {
           position: relative;
           width: 100%;
-          border-radius: 12px;
+          border-radius: 16px;
           overflow: hidden;
-          background: transparent;
-          box-shadow: none;
+          background: #121110;
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08);
           border: none;
-          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
         }
 
         .manifesto-pure-video-container:hover {
           transform: translateY(-3px);
+          box-shadow: 0 24px 48px rgba(0, 0, 0, 0.14);
         }
 
         .manifesto-clean-video {
           width: 100%;
           aspect-ratio: 4 / 3;
           object-fit: cover;
-          border-radius: 12px;
+          border-radius: 16px;
           display: block;
           filter: grayscale(100%) contrast(105%) brightness(0.95);
-          transition: filter 0.6s ease, transform 0.6s ease;
+          will-change: transform;
+          transition: filter 0.6s ease;
         }
 
         .manifesto-pure-video-container:hover .manifesto-clean-video {
-          filter: grayscale(40%) contrast(105%) brightness(1);
-          transform: scale(1.02);
+          filter: grayscale(20%) contrast(105%) brightness(1);
         }
 
         @media (max-width: 1100px) {
