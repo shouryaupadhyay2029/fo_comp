@@ -1,0 +1,295 @@
+/* ==========================================================================
+   VELOURA — Ultra-Restrained Editorial Design System (Swiss / Awwwards)
+   Frontend Odyssey Hackathon Submission
+   ========================================================================== */
+
+@font-face {
+  font-family: 'AsteraCasty';
+  src: url('/fonts/astera/AsteraCastyDemoRegular-Jp00E.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Feldora';
+  src: url('/fonts/feldora/FeldoraDemoRegular-ZpjY3.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Gondens';
+  src: url('/fonts/gondens/Gondens DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  /* Custom Fonts */
+  --font-astera: 'AsteraCasty', 'Outfit', sans-serif;
+  --font-feldora: 'Feldora', var(--font-sans);
+  --font-gondens: 'Gondens', var(--font-mono);
+
+  /* Color Palette - Premium Classy Cream & Charcoal Typography */
+  --bg-dark: #f6f2ec;
+  --color-charcoal: #1a1917;
+  --color-text-bright: #121110;
+  --color-text-main: #282522;
+  --color-text-muted: #68635c;
+  --color-text-dim: #8c857b;
+  
+  /* Hairline Rules & Subtle Separators */
+  --border-hairline: rgba(26, 25, 23, 0.14);
+  --border-hairline-hover: rgba(26, 25, 23, 0.38);
+
+  /* Single Restrained Accent */
+  --accent-orange: #d94e00;
+  --accent-cyan: #0284c7;
+  --accent-violet: #7c3aed;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: var(--font-astera);
+  --font-mono: 'Space Grotesk', monospace;
+
+  /* Spacing System */
+  --section-padding-y: 160px;
+  --nav-height: 96px;
+}
+
+/* Reset & Box Sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  background-color: #f6f2ec;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  background-color: #f6f2ec;
+  color: var(--color-text-main);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Minimal 6px Dot Custom Cursor */
+body {
+  cursor: default;
+}
+
+.custom-cursor-dot {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  background: #121110;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.25s cubic-bezier(0.16, 1, 0.3, 1), height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  mix-blend-mode: difference;
+}
+
+.custom-cursor-dot.hovered {
+  width: 28px;
+  height: 28px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 25, 23, 0.2);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-orange);
+}
+
+/* Typographic Scale Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-text-bright);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-display-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.4rem, 7vw, 9.2rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #121110;
+}
+
+.display-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.4rem, 5.5vw, 6.2rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: #121110;
+}
+
+.editorial-number {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-orange);
+  letter-spacing: 0.2em;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.editorial-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.editorial-body {
+  font-size: 1.18rem;
+  line-height: 1.8;
+  color: #383430;
+  font-weight: 400;
+  max-width: 580px;
+}
+
+/* Hairline Rule */
+.hairline-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-hairline);
+  border: none;
+  margin: 60px 0;
+}
+
+/* Minimal Typographic Action Link */
+.action-link {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #121110;
+  background: transparent;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.action-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(18, 17, 16, 0.25);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.action-link:hover {
+  color: var(--accent-orange);
+  transform: translateX(4px);
+}
+
+.action-link:hover::after {
+  background: var(--accent-orange);
+}
+
+/* Restrained Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(246, 242, 236, 0.95);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Touch Devices - Hide Custom Cursor */
+@media (pointer: coarse) {
+  .custom-cursor-dot {
+    display: none !important;
+  }
+}
+
+/* Mobile Viewport Responsiveness */
+@media (max-width: 768px) {
+  :root {
+    --section-padding-y: 90px;
+    --nav-height: 70px;
+  }
+  .editorial-body {
+    font-size: 1.02rem;
+    line-height: 1.65;
+  }
+  .hairline-divider {
+    margin: 36px 0;
+  }
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
