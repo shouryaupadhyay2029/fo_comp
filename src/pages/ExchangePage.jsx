@@ -1,8 +1,25 @@
-import React, { useState } from 'react';
+/**
+ * @fileoverview Deep Perspective Exchange Page Component.
+ * @module ExchangePage
+ * @description Renders qualitative thought perspectives, audio frequency resonance triggers, and perspective weaving form with LocalStorage persistence.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useState, memo } from 'react';
+import PropTypes from 'prop-types';
 import { MOCK_NODES } from '../data/synapseData';
 import { synth } from '../utils/audio';
 
-export default function ExchangePage({ initialThought, allNodes }) {
+/**
+ * Exchange Page Component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {Object} [props.initialThought] Active featured thought node object.
+ * @param {Array} [props.allNodes=[]] All available thought nodes.
+ * @returns {JSX.Element} The rendered exchange perspective view.
+ */
+function ExchangePage({ initialThought, allNodes }) {
   // Featured Thought State
   const featured = initialThought || (allNodes && allNodes.length > 0 ? allNodes[0] : MOCK_NODES[0]);
   const storageKey = `aetheria_resonate_${featured.id}`;
@@ -572,3 +589,11 @@ export default function ExchangePage({ initialThought, allNodes }) {
     </div>
   );
 }
+
+ExchangePage.propTypes = {
+  initialThought: PropTypes.object,
+  allNodes: PropTypes.array
+};
+
+export default memo(ExchangePage);
+

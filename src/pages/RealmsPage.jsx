@@ -1,4 +1,12 @@
-import React, { useState } from 'react';
+/**
+ * @fileoverview Synchronous Realms Index Page Component.
+ * @module RealmsPage
+ * @description Displays spatial realms index cards with live co-presence badges, realm ambient sound triggers, and thought fragment portals.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useState, memo } from 'react';
+import PropTypes from 'prop-types';
 import { synth } from '../utils/audio';
 
 const REALMS_DATA = [
@@ -83,7 +91,7 @@ const REALMS_DATA = [
   }
 ];
 
-export default function RealmsPage({ onNavigateExchange }) {
+function RealmsPage({ onNavigateExchange }) {
   const [selectedRealm, setSelectedRealm] = useState(null);
   const [hoveredRealmId, setHoveredRealmId] = useState(null);
   const [crossBorderThought, setCrossBorderThought] = useState(null);
@@ -600,3 +608,10 @@ export default function RealmsPage({ onNavigateExchange }) {
     </div>
   );
 }
+
+RealmsPage.propTypes = {
+  onNavigateExchange: PropTypes.func
+};
+
+export default memo(RealmsPage);
+

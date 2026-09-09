@@ -1,7 +1,20 @@
-import React from 'react';
+/**
+ * @fileoverview Philosophy & Design Ethos Manifesto Component.
+ * @module PhilosophyManifesto
+ * @description Renders core tenets (Agency Over Algorithm, Resonance Over Metrics, Presence Over Performance) with interactive Solfeggio sound triggers.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { memo } from 'react';
 import { synth } from '../utils/audio';
 
-export default function PhilosophyManifesto() {
+/**
+ * Philosophy Manifesto Component.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered manifesto section.
+ */
+function PhilosophyManifesto() {
   return (
     <section id="section-philosophy" className="philosophy-manifesto-section">
       <div className="section-container">
@@ -34,9 +47,11 @@ export default function PhilosophyManifesto() {
               onMouseEnter={() => synth.playTone(432, 1.2)}
             >
               <img
-                src="/carousel/hero1.png"
-                alt="Agency Over Algorithm Minimalist Video Loop"
+                src="/src/assets/hero.png"
+                alt="Agency Over Algorithm Minimalist Graphic"
                 className="manifesto-clean-video"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
@@ -67,9 +82,11 @@ export default function PhilosophyManifesto() {
               onMouseEnter={() => synth.playTone(528, 1.2)}
             >
               <img
-                src="/carousel/hero2.png"
-                alt="Resonance Over Metrics Minimalist Video Loop"
+                src="/src/assets/hero.png"
+                alt="Resonance Over Metrics Minimalist Graphic"
                 className="manifesto-clean-video"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
@@ -100,9 +117,11 @@ export default function PhilosophyManifesto() {
               onMouseEnter={() => synth.playTone(639, 1.2)}
             >
               <img
-                src="/carousel/hero3.png"
-                alt="Presence Over Performance Minimalist Video Loop"
+                src="/src/assets/hero.png"
+                alt="Presence Over Performance Minimalist Graphic"
                 className="manifesto-clean-video"
+                loading="lazy"
+                decoding="async"
               />
             </div>
           </div>
@@ -111,3 +130,7 @@ export default function PhilosophyManifesto() {
     </section>
   );
 }
+
+PhilosophyManifesto.propTypes = {};
+
+export default memo(PhilosophyManifesto);

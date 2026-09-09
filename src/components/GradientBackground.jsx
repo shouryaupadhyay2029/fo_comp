@@ -1,12 +1,32 @@
-import React, { useRef, useEffect } from 'react';
+/**
+ * @fileoverview High-Performance Atmospheric Gradient Background and Noise Canvas.
+ * @module GradientBackground
+ * @description Renders a hardware-accelerated ambient backdrop with optimized noise canvas generation.
+ * @author Frontend Odyssey Team
+ */
 
-// Noise component integrated into the background canvas
-export function Noise({
+import React, { useRef, useEffect, memo } from 'react';
+import PropTypes from 'prop-types';
+
+/**
+ * Animated Grain/Noise Canvas overlay.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {number} [props.patternSize=100] Size of the square noise canvas tile in pixels.
+ * @param {number} [props.patternScaleX=1] X-axis scaling ratio.
+ * @param {number} [props.patternScaleY=1] Y-axis scaling ratio.
+ * @param {number} [props.patternRefreshInterval=6] Frame interval for generating new noise seeds.
+ * @param {number} [props.patternAlpha=45] Alpha transparency of grain particles (0-255).
+ * @param {number} [props.intensity=1] Intensity multiplier for noise grain contrast.
+ * @returns {JSX.Element} Canvas element rendering continuous background grain.
+ */
+export const Noise = memo(function Noise({
   patternSize = 100,
   patternScaleX = 1,
   patternScaleY = 1,
-  patternRefreshInterval = 1,
-  patternAlpha = 50,
+  patternRefreshInterval = 6,
+  patternAlpha = 45,
   intensity = 1,
 }) {
   const grainRef = useRef(null);
@@ -16,11 +36,8 @@ export function Noise({
     const canvas = grainRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      console.error("Failed to get 2D context for noise canvas.");
-      return;
-    }
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
 
     let frame = 0;
     const patternCanvas = document.createElement('canvas');
@@ -28,15 +45,12 @@ export function Noise({
     patternCanvas.height = patternSize;
 
     const patternCtx = patternCanvas.getContext('2d');
-    if (!patternCtx) {
-      console.error("Failed to get 2D context for pattern sub-canvas.");
-      return;
-    }
+    if (!patternCtx) return;
     const patternData = patternCtx.createImageData(patternSize, patternSize);
     const patternPixelDataLength = patternSize * patternSize * 4;
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       let newCssWidth = window.innerWidth;
       let newCssHeight = window.innerHeight;
 
@@ -45,12 +59,12 @@ export function Noise({
         newCssWidth = parentRect.width;
         newCssHeight = parentRect.height;
       }
-      
+
       canvasCssSizeRef.current = { width: newCssWidth, height: newCssHeight };
 
       canvas.width = newCssWidth * dpr;
       canvas.height = newCssHeight * dpr;
-      
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
@@ -70,9 +84,8 @@ export function Noise({
       if (cssWidth === 0 || cssHeight === 0) return;
 
       ctx.clearRect(0, 0, cssWidth, cssHeight);
-
       ctx.save();
-      
+
       const safePatternScaleX = Math.max(0.001, patternScaleX);
       const safePatternScaleY = Math.max(0.001, patternScaleY);
       ctx.scale(safePatternScaleX, safePatternScaleY);
@@ -82,12 +95,17 @@ export function Noise({
         ctx.fillStyle = fillPattern;
         ctx.fillRect(0, 0, cssWidth / safePatternScaleX, cssHeight / safePatternScaleY);
       }
-      
+
       ctx.restore();
     };
 
     let animationFrameId;
     const loop = () => {
+      if (document.hidden) {
+        animationFrameId = window.requestAnimationFrame(loop);
+        return;
+      }
+
       if (canvasCssSizeRef.current.width > 0 && canvasCssSizeRef.current.height > 0) {
         if (frame % patternRefreshInterval === 0) {
           updatePattern();
@@ -98,13 +116,13 @@ export function Noise({
       animationFrameId = window.requestAnimationFrame(loop);
     };
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
     resize();
+    updatePattern();
+    drawGrain();
+
     if (patternRefreshInterval > 0) {
       loop();
-    } else {
-      updatePattern();
-      drawGrain();
     }
 
     return () => {
@@ -125,14 +143,46 @@ export function Noise({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 1
+        zIndex: 1,
+        willChange: 'transform',
+        transform: 'translateZ(0)'
       }}
     />
   );
-}
+});
 
-// Main gradient background component
-export function GradientBackground({
+Noise.propTypes = {
+  patternSize: PropTypes.number,
+  patternScaleX: PropTypes.number,
+  patternScaleY: PropTypes.number,
+  patternRefreshInterval: PropTypes.number,
+  patternAlpha: PropTypes.number,
+  intensity: PropTypes.number
+};
+
+/**
+ * Main Ambient Gradient Backdrop component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {string} [props.gradientType='radial-gradient'] Gradient function type ('radial-gradient', 'linear-gradient', 'conic-gradient').
+ * @param {string} [props.gradientSize='125% 125%'] Size string for radial gradient.
+ * @param {string} [props.gradientOrigin='bottom-middle'] Anchor origin position.
+ * @param {Array<{color: string, stop: string}>} [props.colors] Array of color stop definitions.
+ * @param {boolean} [props.enableNoise=true] Whether noise overlay is enabled.
+ * @param {number} [props.noisePatternSize=90] Noise tile size.
+ * @param {number} [props.noisePatternScaleX=1] X scaling for noise canvas.
+ * @param {number} [props.noisePatternScaleY=1] Y scaling for noise canvas.
+ * @param {number} [props.noisePatternRefreshInterval=6] Frame skip interval for noise updates.
+ * @param {number} [props.noisePatternAlpha=45] Alpha transparency of noise.
+ * @param {number} [props.noiseIntensity=1.0] Noise intensity contrast multiplier.
+ * @param {string} [props.className=''] Optional additional CSS classes.
+ * @param {Object} [props.style={}] Optional inline style overrides.
+ * @param {React.ReactNode} [props.children] Children elements to render inside wrapper.
+ * @param {string|null} [props.customGradient=null] Override custom gradient string.
+ * @returns {JSX.Element} Ambient full-viewport fixed backdrop.
+ */
+export const GradientBackground = memo(function GradientBackground({
   gradientType = 'radial-gradient',
   gradientSize = '125% 125%',
   gradientOrigin = 'bottom-middle',
@@ -147,7 +197,7 @@ export function GradientBackground({
   noisePatternSize = 90,
   noisePatternScaleX = 1,
   noisePatternScaleY = 1,
-  noisePatternRefreshInterval = 2,
+  noisePatternRefreshInterval = 6,
   noisePatternAlpha = 45,
   noiseIntensity = 1.0,
   className = '',
@@ -157,7 +207,7 @@ export function GradientBackground({
 }) {
   const generateGradient = () => {
     if (customGradient) return customGradient;
-    
+
     const getGradientPosition = (origin) => {
       const positions = {
         'bottom-middle': '50% 101%',
@@ -172,10 +222,10 @@ export function GradientBackground({
       };
       return positions[origin] || positions['bottom-middle'];
     };
-    
+
     const position = getGradientPosition(gradientOrigin);
     const colorStops = colors.map(({ color, stop }) => `${color} ${stop}`).join(',');
-    
+
     if (gradientType === 'radial-gradient') {
       return `radial-gradient(${gradientSize} at ${position},${colorStops})`;
     } else if (gradientType === 'linear-gradient') {
@@ -195,7 +245,7 @@ export function GradientBackground({
     } else if (gradientType === 'conic-gradient') {
       return `conic-gradient(from 0deg at ${position},${colorStops})`;
     }
-    
+
     return `${gradientType}(${colorStops})`;
   };
 
@@ -208,6 +258,8 @@ export function GradientBackground({
     height: '100vh',
     pointerEvents: 'none',
     zIndex: 0,
+    willChange: 'transform',
+    transform: 'translateZ(0)',
     ...style
   };
 
@@ -226,4 +278,27 @@ export function GradientBackground({
       {children}
     </div>
   );
-}
+});
+
+GradientBackground.propTypes = {
+  gradientType: PropTypes.string,
+  gradientSize: PropTypes.string,
+  gradientOrigin: PropTypes.string,
+  colors: PropTypes.arrayOf(
+    PropTypes.shape({
+      color: PropTypes.string.isRequired,
+      stop: PropTypes.string.isRequired
+    })
+  ),
+  enableNoise: PropTypes.bool,
+  noisePatternSize: PropTypes.number,
+  noisePatternScaleX: PropTypes.number,
+  noisePatternScaleY: PropTypes.number,
+  noisePatternRefreshInterval: PropTypes.number,
+  noisePatternAlpha: PropTypes.number,
+  noiseIntensity: PropTypes.number,
+  className: PropTypes.string,
+  style: PropTypes.object,
+  children: PropTypes.node,
+  customGradient: PropTypes.string
+};

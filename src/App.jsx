@@ -1,4 +1,11 @@
-import React, { useState } from 'react';
+/**
+ * @fileoverview Main Application Root Component for Frontend Odyssey.
+ * @module App
+ * @description Coordinates routing, global state, audio triggers, modal popups, page transitions, smooth scrolling, and core UI sections.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useState, lazy, Suspense } from 'react';
 import gsap from 'gsap';
 import { GradientBackground } from './components/GradientBackground';
 import SmoothScrollWrapper from './components/SmoothScrollWrapper';
@@ -12,15 +19,8 @@ import ConstellationMap from './components/ConstellationMap';
 import VibeRealms from './components/VibeRealms';
 import MindfulSanctuary from './components/MindfulSanctuary';
 import EditorialFooter from './components/EditorialFooter';
-import ThoughtExpansionPanel from './components/ThoughtExpansionPanel';
-import ThoughtWeaverModal from './components/ThoughtWeaverModal';
-import ResonanceHistory from './components/ResonanceHistory';
-import CuriousDiscovery from './components/CuriousDiscovery';
 import BackToTopSeal from './components/BackToTopSeal';
-import YourbanaMenuOverlay from './components/YourbanaMenuOverlay';
-import DiscoverPage from './pages/DiscoverPage';
-import ExchangePage from './pages/ExchangePage';
-import RealmsPage from './pages/RealmsPage';
+
 import { MOCK_NODES } from './data/synapseData';
 import { useScrollDirection } from './hooks/useScrollDirection';
 import { useScrollReveal } from './hooks/useScrollReveal';
@@ -28,6 +28,36 @@ import { useParallaxGlide } from './hooks/useParallaxGlide';
 import { useNavigationRoute } from './hooks/useNavigationRoute';
 import './styles/AppStyles.css';
 
+// Code-Splitting / Lazy Loading heavy pages & modals for maximum performance score
+const DiscoverPage = lazy(() => import('./pages/DiscoverPage'));
+const ExchangePage = lazy(() => import('./pages/ExchangePage'));
+const RealmsPage = lazy(() => import('./pages/RealmsPage'));
+
+const ThoughtExpansionPanel = lazy(() => import('./components/ThoughtExpansionPanel'));
+const ThoughtWeaverModal = lazy(() => import('./components/ThoughtWeaverModal'));
+const ResonanceHistory = lazy(() => import('./components/ResonanceHistory'));
+const CuriousDiscovery = lazy(() => import('./components/CuriousDiscovery'));
+const YourbanaMenuOverlay = lazy(() => import('./components/YourbanaMenuOverlay'));
+
+/**
+ * Fallback loader component for lazy-loaded route boundaries.
+ */
+function PageFallbackLoader() {
+  return (
+    <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="font-mono text-sm tracking-widest text-muted" style={{ animation: 'pulse 1.5s infinite' }}>
+        LOADING EXPERIENCE...
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Root React Component that renders application layout, navigation, modals, and route views.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered main application.
+ */
 export default function App() {
   // Custom Architecture Hooks
   const { currentPath, isPageTransitioning, setIsPageTransitioning, handleNavigateRoute } = useNavigationRoute();
@@ -142,7 +172,7 @@ export default function App() {
           gradientOrigin="bottom-middle"
           noiseIntensity={0.85}
           noisePatternSize={90}
-          noisePatternRefreshInterval={2}
+          noisePatternRefreshInterval={6}
           noisePatternAlpha={32}
         />
 
@@ -156,130 +186,132 @@ export default function App() {
         />
 
         <main className="editorial-main-content">
-          {currentPath === '/discover' ? (
-            <DiscoverPage
-              allNodes={nodes}
-              onSelectNode={(thought) => {
-                setExchangeThought(thought);
-                handleNavigateRoute('/exchange');
-              }}
-            />
-          ) : currentPath === '/exchange' ? (
-            <ExchangePage
-              initialThought={exchangeThought}
-              allNodes={nodes}
-            />
-          ) : currentPath === '/realms' ? (
-            <RealmsPage
-              onNavigateExchange={(thought) => {
-                setExchangeThought(thought);
-                handleNavigateRoute('/exchange');
-              }}
-            />
-          ) : (
-            <>
-              {/* SECTION 01 — EDITORIAL HERO */}
-              <HeroSection
-                onEnterMindscape={handleEnterMindscape}
-                onSelectCard={() => scrollToSection('section-mindscape')}
+          <Suspense fallback={<PageFallbackLoader />}>
+            {currentPath === '/discover' ? (
+              <DiscoverPage
+                allNodes={nodes}
+                onSelectNode={(thought) => {
+                  setExchangeThought(thought);
+                  handleNavigateRoute('/exchange');
+                }}
               />
+            ) : currentPath === '/exchange' ? (
+              <ExchangePage
+                initialThought={exchangeThought}
+                allNodes={nodes}
+              />
+            ) : currentPath === '/realms' ? (
+              <RealmsPage
+                onNavigateExchange={(thought) => {
+                  setExchangeThought(thought);
+                  handleNavigateRoute('/exchange');
+                }}
+              />
+            ) : (
+              <>
+                {/* SECTION 01 — EDITORIAL HERO */}
+                <HeroSection
+                  onEnterMindscape={handleEnterMindscape}
+                  onSelectCard={() => scrollToSection('section-mindscape')}
+                />
 
-              {/* SECTION 02 — PHILOSOPHY MANIFESTO */}
-              <PhilosophyManifesto />
+                {/* SECTION 02 — PHILOSOPHY MANIFESTO */}
+                <PhilosophyManifesto />
 
-              {/* SECTION 03 — THE MINDSCAPE */}
-              <section id="section-mindscape" className="mindscape-section">
-                <div className="mindscape-header-box">
-                  <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                    <span className="editorial-number">03 — SPATIAL THOUGHT NETWORK</span>
-                  </div>
-                  <div className="mindscape-title-row">
-                    <h2 className="display-title mindscape-title" data-scroll-reveal="mask-up" data-delay="100ms">
-                      NOT AN ENDLESS FEED.<br />A LIVING FIELD OF IDEAS.
-                    </h2>
-                    <button
-                      className="action-link curious-serendipity-btn font-mono"
-                      data-scroll-reveal="scale-up"
-                      data-delay="250ms"
-                      onClick={() => setIsCuriousOpen(true)}
-                    >
-                      EXPLORE SERENDIPITY ✦
-                    </button>
-                  </div>
-                  <p className="editorial-body text-muted" data-scroll-reveal="fade-up" data-delay="300ms">
-                    "Step into a 2D spatial constellation where thoughts become connected nodes. Track how perspectives evolve, branch into new dimensions, and resonate across 432Hz audio frequencies."
-                  </p>
-                </div>
-
-                {/* Astronomical Typographic Constellation Canvas */}
-                <ConstellationMap nodes={nodes} onSelectNode={(node) => setSelectedNode(node)} />
-              </section>
-
-              {/* SECTION 04 — FEATURED THOUGHT SPREAD */}
-              {featuredNode && (
-                <section id="section-thought" className="featured-magazine-section">
-                  <div className="section-container">
+                {/* SECTION 03 — THE MINDSCAPE */}
+                <section id="section-mindscape" className="mindscape-section">
+                  <div className="mindscape-header-box">
                     <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                      <span className="editorial-number">04 — FEATURED PERSPECTIVE</span>
+                      <span className="editorial-number">03 — SPATIAL THOUGHT NETWORK</span>
+                    </div>
+                    <div className="mindscape-title-row">
+                      <h2 className="display-title mindscape-title" data-scroll-reveal="mask-up" data-delay="100ms">
+                        NOT AN ENDLESS FEED.<br />A LIVING FIELD OF IDEAS.
+                      </h2>
+                      <button
+                        className="action-link curious-serendipity-btn font-mono"
+                        data-scroll-reveal="scale-up"
+                        data-delay="250ms"
+                        onClick={() => setIsCuriousOpen(true)}
+                      >
+                        EXPLORE SERENDIPITY ✦
+                      </button>
+                    </div>
+                    <p className="editorial-body text-muted" data-scroll-reveal="fade-up" data-delay="300ms">
+                      "Step into a 2D spatial constellation where thoughts become connected nodes. Track how perspectives evolve, branch into new dimensions, and resonate across 432Hz audio frequencies."
+                    </p>
+                  </div>
+
+                  {/* Astronomical Typographic Constellation Canvas */}
+                  <ConstellationMap nodes={nodes} onSelectNode={(node) => setSelectedNode(node)} />
+                </section>
+
+                {/* SECTION 04 — FEATURED THOUGHT SPREAD */}
+                {featuredNode && (
+                  <section id="section-thought" className="featured-magazine-section">
+                    <div className="section-container">
+                      <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                        <span className="editorial-number">04 — FEATURED PERSPECTIVE</span>
+                      </div>
+
+                      <h2 className="display-title featured-magazine-title" data-scroll-reveal="mask-up" data-delay="150ms">
+                        "WHAT IF SOCIAL MEDIA WAS BUILT TO ENRICH YOUR MIND, NOT STEAL YOUR TIME?"
+                      </h2>
+
+                      <div className="magazine-byline font-mono" data-scroll-reveal="fade-up" data-delay="250ms">
+                        <span>{featuredNode.creator.toUpperCase()}</span>
+                        <span className="byline-sep">/</span>
+                        <span>DIGITAL WELLBEING</span>
+                        <span className="byline-sep">/</span>
+                        <span>{featuredNode.resonanceCount} QUALITATIVE RESONANCES</span>
+                      </div>
+
+                      <p className="editorial-body magazine-body" data-scroll-reveal="fade-up" data-delay="350ms">
+                        "{featuredNode.content}"
+                      </p>
+
+                      <div className="magazine-actions font-mono" data-scroll-reveal="fade-up" data-delay="450ms">
+                        <button className="action-link" onClick={() => handleToggleResonate(featuredNode)}>
+                          {userResonances.some((r) => r.id === featuredNode.id) ? 'RESONATING IN JOURNAL ✓' : 'RESONATE WITH THOUGHT +'}
+                        </button>
+                        <button className="action-link" onClick={() => setSelectedNode(featuredNode)}>
+                          OFFER PERSPECTIVE ↗
+                        </button>
+                        <button className="action-link" onClick={() => handleExpandFromNode(featuredNode)}>
+                          WEAVE THOUGHT BRANCH →
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                {/* SECTION 05 — VIBE REALMS */}
+                <VibeRealms />
+
+                {/* SECTION 06 — MINDFUL SANCTUARY */}
+                <MindfulSanctuary />
+
+                {/* SECTION 07 — FINAL EDITORIAL CTA */}
+                <section id="section-final-cta" className="final-cta-section">
+                  <div className="section-container text-center">
+                    <div className="section-meta font-mono" data-scroll-reveal="fade-up">
+                      <span className="editorial-number">07 — JOIN THE SLOW SOCIAL REVOLUTION</span>
                     </div>
 
-                    <h2 className="display-title featured-magazine-title" data-scroll-reveal="mask-up" data-delay="150ms">
-                      "WHAT IF SOCIAL MEDIA WAS BUILT TO ENRICH YOUR MIND, NOT STEAL YOUR TIME?"
+                    <h2 className="display-title final-title" data-scroll-reveal="mask-up" data-delay="150ms">
+                      DON'T POST FOR CLOUT.<br />PLANT A THOUGHT FOR RESONANCE.
                     </h2>
 
-                    <div className="magazine-byline font-mono" data-scroll-reveal="fade-up" data-delay="250ms">
-                      <span>{featuredNode.creator.toUpperCase()}</span>
-                      <span className="byline-sep">/</span>
-                      <span>DIGITAL WELLBEING</span>
-                      <span className="byline-sep">/</span>
-                      <span>{featuredNode.resonanceCount} QUALITATIVE RESONANCES</span>
-                    </div>
-
-                    <p className="editorial-body magazine-body" data-scroll-reveal="fade-up" data-delay="350ms">
-                      "{featuredNode.content}"
-                    </p>
-
-                    <div className="magazine-actions font-mono" data-scroll-reveal="fade-up" data-delay="450ms">
-                      <button className="action-link" onClick={() => handleToggleResonate(featuredNode)}>
-                        {userResonances.some((r) => r.id === featuredNode.id) ? 'RESONATING IN JOURNAL ✓' : 'RESONATE WITH THOUGHT +'}
-                      </button>
-                      <button className="action-link" onClick={() => setSelectedNode(featuredNode)}>
-                        OFFER PERSPECTIVE ↗
-                      </button>
-                      <button className="action-link" onClick={() => handleExpandFromNode(featuredNode)}>
-                        WEAVE THOUGHT BRANCH →
+                    <div className="final-action-box font-mono" data-scroll-reveal="scale-up" data-delay="300ms">
+                      <button className="action-link final-weave-link" onClick={handleOpenWeaverGeneral}>
+                        WEAVE A THOUGHT TO THE MINDSCAPE →
                       </button>
                     </div>
                   </div>
                 </section>
-              )}
-
-              {/* SECTION 05 — VIBE REALMS */}
-              <VibeRealms />
-
-              {/* SECTION 06 — MINDFUL SANCTUARY */}
-              <MindfulSanctuary />
-
-              {/* SECTION 07 — FINAL EDITORIAL CTA */}
-              <section id="section-final-cta" className="final-cta-section">
-                <div className="section-container text-center">
-                  <div className="section-meta font-mono" data-scroll-reveal="fade-up">
-                    <span className="editorial-number">07 — JOIN THE SLOW SOCIAL REVOLUTION</span>
-                  </div>
-
-                  <h2 className="display-title final-title" data-scroll-reveal="mask-up" data-delay="150ms">
-                    DON'T POST FOR CLOUT.<br />PLANT A THOUGHT FOR RESONANCE.
-                  </h2>
-
-                  <div className="final-action-box font-mono" data-scroll-reveal="scale-up" data-delay="300ms">
-                    <button className="action-link final-weave-link" onClick={handleOpenWeaverGeneral}>
-                      WEAVE A THOUGHT TO THE MINDSCAPE →
-                    </button>
-                  </div>
-                </div>
-              </section>
-            </>
-          )}
+              </>
+            )}
+          </Suspense>
 
           {/* OUTWAY-INSPIRED EDITORIAL FOOTER */}
           <EditorialFooter
@@ -289,59 +321,71 @@ export default function App() {
           />
         </main>
 
-        {/* Thought Expansion Panel */}
-        <ThoughtExpansionPanel
-          node={selectedNode}
-          allNodes={nodes}
-          onClose={() => setSelectedNode(null)}
-          onSelectNode={(node) => setSelectedNode(node)}
-          onExpandNode={handleExpandFromNode}
-          onToggleResonate={handleToggleResonate}
-          isResonatedInJournal={selectedNode ? userResonances.some((r) => r.id === selectedNode.id) : false}
-        />
+        <Suspense fallback={null}>
+          {/* Thought Expansion Panel */}
+          {selectedNode && (
+            <ThoughtExpansionPanel
+              node={selectedNode}
+              allNodes={nodes}
+              onClose={() => setSelectedNode(null)}
+              onSelectNode={(node) => setSelectedNode(node)}
+              onExpandNode={handleExpandFromNode}
+              onToggleResonate={handleToggleResonate}
+              isResonatedInJournal={selectedNode ? userResonances.some((r) => r.id === selectedNode.id) : false}
+            />
+          )}
 
-        {/* Weave Thought Creator Modal */}
-        <ThoughtWeaverModal
-          isOpen={isWeaverOpen}
-          onClose={() => setIsWeaverOpen(false)}
-          onAddNode={handleAddNode}
-          existingNodes={nodes}
-          parentNode={weaverParentNode}
-        />
+          {/* Weave Thought Creator Modal */}
+          {isWeaverOpen && (
+            <ThoughtWeaverModal
+              isOpen={isWeaverOpen}
+              onClose={() => setIsWeaverOpen(false)}
+              onAddNode={handleAddNode}
+              existingNodes={nodes}
+              parentNode={weaverParentNode}
+            />
+          )}
 
-        {/* Private Resonance History Journal Modal */}
-        <ResonanceHistory
-          isOpen={isResonanceOpen}
-          onClose={() => setIsResonanceOpen(false)}
-          userResonances={userResonances}
-          onSelectNode={(node) => setSelectedNode(node)}
-        />
+          {/* Private Resonance History Journal Modal */}
+          {isResonanceOpen && (
+            <ResonanceHistory
+              isOpen={isResonanceOpen}
+              onClose={() => setIsResonanceOpen(false)}
+              userResonances={userResonances}
+              onSelectNode={(node) => setSelectedNode(node)}
+            />
+          )}
 
-        {/* Intellectual Serendipity Modal */}
-        <CuriousDiscovery
-          isOpen={isCuriousOpen}
-          onClose={() => setIsCuriousOpen(false)}
-          allNodes={nodes}
-          onSelectNode={(node) => setSelectedNode(node)}
-        />
+          {/* Intellectual Serendipity Modal */}
+          {isCuriousOpen && (
+            <CuriousDiscovery
+              isOpen={isCuriousOpen}
+              onClose={() => setIsCuriousOpen(false)}
+              allNodes={nodes}
+              onSelectNode={(node) => setSelectedNode(node)}
+            />
+          )}
 
-        {/* Menu Overlay */}
-        <YourbanaMenuOverlay
-          isOpen={isMenuOverlayOpen}
-          onClose={() => setIsMenuOverlayOpen(false)}
-          onSelectMenuItem={(sectionId) => {
-            if (currentPath !== '/') {
-              handleNavigateRoute('/');
-              setTimeout(() => {
-                scrollToSection(sectionId);
-              }, 400);
-            } else {
-              scrollToSection(sectionId);
-            }
-          }}
-          onOpenWeaver={handleOpenWeaverGeneral}
-          onNavigateRoute={handleNavigateRoute}
-        />
+          {/* Menu Overlay */}
+          {isMenuOverlayOpen && (
+            <YourbanaMenuOverlay
+              isOpen={isMenuOverlayOpen}
+              onClose={() => setIsMenuOverlayOpen(false)}
+              onSelectMenuItem={(sectionId) => {
+                if (currentPath !== '/') {
+                  handleNavigateRoute('/');
+                  setTimeout(() => {
+                    scrollToSection(sectionId);
+                  }, 400);
+                } else {
+                  scrollToSection(sectionId);
+                }
+              }}
+              onOpenWeaver={handleOpenWeaverGeneral}
+              onNavigateRoute={handleNavigateRoute}
+            />
+          )}
+        </Suspense>
 
         {/* Circular Rotating Seal Back To Top Button */}
         <BackToTopSeal />

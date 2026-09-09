@@ -1,8 +1,25 @@
-import React, { useState } from 'react';
+/**
+ * @fileoverview Finite Editorial Discovery Magazine Page.
+ * @module DiscoverPage
+ * @description Displays finite curated thought perspectives with hover spotlight preview, serendipitous discovery trigger, and magazine index layout.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useState, memo } from 'react';
+import PropTypes from 'prop-types';
 import { MOCK_NODES, MOCK_CATEGORIES } from '../data/synapseData';
 import { synth } from '../utils/audio';
 
-export default function DiscoverPage({ onSelectNode, allNodes }) {
+/**
+ * Discover Page Component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {Function} [props.onSelectNode] Callback triggered when selecting a thought to exchange perspective.
+ * @param {Array} [props.allNodes=[]] Synapse thought node data array.
+ * @returns {JSX.Element} The rendered editorial discover page view.
+ */
+function DiscoverPage({ onSelectNode, allNodes }) {
   // Pool of curated finite thoughts (5-8 thoughts)
   const [thoughts] = useState(() => {
     const sourceList = (allNodes && allNodes.length > 0) ? allNodes : MOCK_NODES;
@@ -761,3 +778,11 @@ export default function DiscoverPage({ onSelectNode, allNodes }) {
     </div>
   );
 }
+
+DiscoverPage.propTypes = {
+  onSelectNode: PropTypes.func,
+  allNodes: PropTypes.array
+};
+
+export default memo(DiscoverPage);
+

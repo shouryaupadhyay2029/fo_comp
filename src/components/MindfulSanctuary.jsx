@@ -1,7 +1,20 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @fileoverview Mindful Sanctuary & Solfeggio Acoustic Breathing Component.
+ * @module MindfulSanctuary
+ * @description Provides a calm digital sanctuary experience with 432Hz/528Hz frequency audio synth and session departure feature.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useState, useEffect, memo } from 'react';
 import { synth } from '../utils/audio';
 
-export default function MindfulSanctuary() {
+/**
+ * Mindful Sanctuary Component.
+ *
+ * @component
+ * @returns {JSX.Element} Interactive sanctuary section with guided audio breathing.
+ */
+function MindfulSanctuary() {
   const [breathPhase, setBreathPhase] = useState('INHALE');
   const [isBreathingActive, setIsBreathingActive] = useState(false);
   const [isSessionComplete, setIsSessionComplete] = useState(false);
@@ -151,3 +164,7 @@ export default function MindfulSanctuary() {
     </section>
   );
 }
+
+MindfulSanctuary.propTypes = {};
+
+export default memo(MindfulSanctuary);

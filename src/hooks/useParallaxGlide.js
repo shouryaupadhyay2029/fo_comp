@@ -1,13 +1,29 @@
+/**
+ * @fileoverview High-Performance GPU Parallax Glide Hook.
+ * @module useParallaxGlide
+ * @description Provides 60-120fps hardware-accelerated parallax translation for images and media frames using passive scroll listeners and requestAnimationFrame.
+ * @author Frontend Odyssey Team
+ */
+
 import { useEffect } from 'react';
 
 /**
- * Custom hook managing 60fps requestAnimationFrame image parallax glide effects.
+ * Custom hook for smooth image parallax glide effects.
+ *
+ * @function useParallaxGlide
+ * @param {*} [dependencyKey] Dependency trigger to refresh elements on page navigation.
+ * @returns {void}
  */
 export function useParallaxGlide(dependencyKey) {
   useEffect(() => {
     let ticking = false;
 
     const updateParallax = () => {
+      if (document.hidden) {
+        ticking = false;
+        return;
+      }
+
       const viewHeight = window.innerHeight;
       const parallaxTargets = [
         { containerSel: '.manifesto-pure-video-container', imgSel: '.manifesto-clean-video', scale: 1.24, factor: -0.12 },

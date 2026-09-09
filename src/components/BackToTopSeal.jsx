@@ -1,6 +1,19 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @fileoverview Rotating Back-To-Top Circular Seal Button.
+ * @module BackToTopSeal
+ * @description Renders a fixed circular badge with SVG rotating text ring and smooth-scroll to top action.
+ * @author Frontend Odyssey Team
+ */
 
-export default function BackToTopSeal() {
+import React, { useState, useEffect, memo } from 'react';
+
+/**
+ * Back to Top Floating Badge Seal Component.
+ *
+ * @component
+ * @returns {JSX.Element} Rotating circular button seal.
+ */
+function BackToTopSeal() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -74,6 +87,7 @@ export default function BackToTopSeal() {
           opacity: 0;
           visibility: hidden;
           transform: translateY(20px) scale(0.85);
+          will-change: transform, opacity;
           transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                       transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                       visibility 0.4s ease;
@@ -157,3 +171,7 @@ export default function BackToTopSeal() {
     </div>
   );
 }
+
+BackToTopSeal.propTypes = {};
+
+export default memo(BackToTopSeal);

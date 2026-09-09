@@ -1,5 +1,53 @@
-// AETHERIA Spatial Thought Data Engine
+/**
+ * @fileoverview Synapse Spatial Thought & Acoustic Frequency Data Engine.
+ * @module synapseData
+ * @description Mock datasets containing 2D spatial thought nodes, categories, acoustic frequencies (432Hz/528Hz), perspectives, and synchronous vibe realms.
+ * @author Frontend Odyssey Team
+ */
 
+/**
+ * @typedef {Object} CategoryItem
+ * @property {string} id Category identifier string.
+ * @property {string} label User-facing category label.
+ * @property {string} color Hexadecimal color token.
+ */
+
+/**
+ * @typedef {Object} PerspectiveItem
+ * @property {string} author Perspective contributor name.
+ * @property {string} text Perspective statement text.
+ */
+
+/**
+ * @typedef {Object} ConnectionItem
+ * @property {string} targetId Target node identifier.
+ * @property {string} type Relationship type ('conceptual' | 'resonance' | 'creative').
+ * @property {string} label Relationship descriptor label.
+ */
+
+/**
+ * @typedef {Object} ThoughtNode
+ * @property {string} id Node unique identifier.
+ * @property {string} title Thought headline.
+ * @property {string} creator Author name.
+ * @property {string} avatar Image avatar URL.
+ * @property {string} category Category ID string.
+ * @property {number} resonanceCount Quantitative resonance count.
+ * @property {number} perspectivesCount Perspective response count.
+ * @property {number} evolutionCount Branch evolution count.
+ * @property {string} shortSentence Summarizing thesis sentence.
+ * @property {string} content Extended thought body.
+ * @property {string[]} tags List of topic tags.
+ * @property {number} x Spatial X coordinate on 2D plane.
+ * @property {number} y Spatial Y coordinate on 2D plane.
+ * @property {number} radius Canvas node rendering radius.
+ * @property {string} color Hexadecimal stroke/fill color.
+ * @property {number} audioFrequency Acoustic frequency in Hertz.
+ * @property {PerspectiveItem[]} perspectives Array of perspectives.
+ * @property {ConnectionItem[]} connections Array of edge connections.
+ */
+
+/** @type {CategoryItem[]} */
 export const MOCK_CATEGORIES = [
   { id: 'all', label: 'All Thought Spheres', color: '#ffffff' },
   { id: 'philosophy', label: 'Cosmic Philosophy', color: '#c084fc' },
@@ -8,6 +56,7 @@ export const MOCK_CATEGORIES = [
   { id: 'future', label: 'Post-AI Futures', color: '#ff7700' }
 ];
 
+/** @type {ThoughtNode[]} */
 export const MOCK_NODES = [
   {
     id: 'node-1',

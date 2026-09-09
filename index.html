@@ -13,7 +13,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="VELOURA — Spatial Thought Network & Slow Social Platform" />
     <meta property="og:description" content="A slower, intentional social architecture for ideas, perspectives, and qualitative acoustic resonance." />
-    <meta property="og:image" content="/carousel/hero1.png" />
+    <meta property="og:image" content="/src/assets/hero.png" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -25,11 +25,32 @@
 
     <title>VELOURA — Spatial Thought Network & Slow Social Architecture | Frontend Odyssey</title>
 
-    <!-- Google Fonts & Resource Preconnect -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Resource Hints & DNS Prefetching -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+    <!-- Critical Web Fonts with swap display -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Inline Render Optimization CSS -->
+    <style>
+      /* Immediate background prevention of FOUC */
+      html, body {
+        background-color: #121110;
+        color: #f7f5f0;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      #root {
+        contain: layout style;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

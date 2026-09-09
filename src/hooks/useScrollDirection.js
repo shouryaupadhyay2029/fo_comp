@@ -1,8 +1,17 @@
+/**
+ * @fileoverview Scroll Direction Observer Hook.
+ * @module useScrollDirection
+ * @description Tracks scroll direction (up vs down) and updates `data-scroll-dir` attribute on document.body for dynamic header hiding and reveal styling.
+ * @author Frontend Odyssey Team
+ */
+
 import { useEffect } from 'react';
 
 /**
- * Custom hook that tracks scroll direction (up vs down)
- * and sets `data-scroll-dir` attribute on document.body for dynamic header & reveal CSS styling.
+ * Custom Hook to observe vertical scroll direction.
+ *
+ * @function useScrollDirection
+ * @returns {void}
  */
 export function useScrollDirection() {
   useEffect(() => {

@@ -1,65 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * @fileoverview Interactive 2D Circular Hero Wheel Component for Frontend Odyssey.
+ * @module HeroCarousel
+ * @description Displays orbiting squircle visual cards with morphing CSS borders, interactive hover focal points, and hardware-accelerated RAF rotation.
+ * @author Frontend Odyssey Team
+ */
 
+import React, { useState, useEffect, useRef, memo } from 'react';
+import PropTypes from 'prop-types';
+
+/** @typedef {{id: number, title: string, subtitle: string, image: string, angle: number}} CarouselItem */
+
+/** @type {CarouselItem[]} */
 const CAROUSEL_ITEMS = [
-  {
-    id: 1,
-    title: 'ACOUSTIC MINDSCAPE',
-    subtitle: 'SPATIAL THOUGHT MAPPING',
-    image: '/carousel/hero1.png',
-    angle: 0
-  },
-  {
-    id: 2,
-    title: 'SPATIAL RESONANCE',
-    subtitle: 'QUALITATIVE HUM',
-    image: '/carousel/hero2.png',
-    angle: 45
-  },
-  {
-    id: 3,
-    title: 'PERSPECTIVE WEAVING',
-    subtitle: 'INTERACTIVE EVOLUTION',
-    image: '/carousel/hero3.png',
-    angle: 90
-  },
-  {
-    id: 4,
-    title: 'MINDFUL SANCTUARY',
-    subtitle: 'SKEW-FREE CO-PRESENCE',
-    image: '/carousel/hero4.png',
-    angle: 135
-  },
-  {
-    id: 5,
-    title: 'SILENT PRESENCE',
-    subtitle: '432HZ FREQUENCY',
-    image: '/carousel/hero1.png',
-    angle: 180
-  },
-  {
-    id: 6,
-    title: 'VIBE SPHERES',
-    subtitle: 'ATMOSPHERIC REALMS',
-    image: '/carousel/hero2.png',
-    angle: 225
-  },
-  {
-    id: 7,
-    title: 'SERENDIPITY',
-    subtitle: 'CURIOUS DISCOVERY',
-    image: '/carousel/hero3.png',
-    angle: 270
-  },
-  {
-    id: 8,
-    title: 'THOUGHT EVOLUTION',
-    subtitle: 'ORGANIC GROWTH',
-    image: '/carousel/hero4.png',
-    angle: 315
-  }
+  { id: 1, title: 'ACOUSTIC MINDSCAPE', subtitle: 'SPATIAL THOUGHT MAPPING', image: '/src/assets/hero.png', angle: 0 },
+  { id: 2, title: 'SPATIAL RESONANCE', subtitle: 'QUALITATIVE HUM', image: '/src/assets/hero.png', angle: 45 },
+  { id: 3, title: 'PERSPECTIVE WEAVING', subtitle: 'INTERACTIVE EVOLUTION', image: '/src/assets/hero.png', angle: 90 },
+  { id: 4, title: 'MINDFUL SANCTUARY', subtitle: 'SKEW-FREE CO-PRESENCE', image: '/src/assets/hero.png', angle: 135 },
+  { id: 5, title: 'SILENT PRESENCE', subtitle: '432HZ FREQUENCY', image: '/src/assets/hero.png', angle: 180 },
+  { id: 6, title: 'VIBE SPHERES', subtitle: 'ATMOSPHERIC REALMS', image: '/src/assets/hero.png', angle: 225 },
+  { id: 7, title: 'SERENDIPITY', subtitle: 'CURIOUS DISCOVERY', image: '/src/assets/hero.png', angle: 270 },
+  { id: 8, title: 'THOUGHT EVOLUTION', subtitle: 'ORGANIC GROWTH', image: '/src/assets/hero.png', angle: 315 }
 ];
 
-export default function HeroCarousel({ onSelectCard }) {
+/**
+ * Orbiting Hero Carousel Component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {Function} [props.onSelectCard] Callback triggered when a carousel card is clicked.
+ * @returns {JSX.Element} The rendered circular carousel stage.
+ */
+function HeroCarousel({ onSelectCard }) {
   const [activeCard, setActiveCard] = useState(null);
   const [isStageHovered, setIsStageHovered] = useState(false);
   const ringRef = useRef(null);
@@ -69,6 +40,11 @@ export default function HeroCarousel({ onSelectCard }) {
   useEffect(() => {
     let animId;
     const updateRotation = () => {
+      if (document.hidden) {
+        animId = requestAnimationFrame(updateRotation);
+        return;
+      }
+
       const targetSpeed = isStageHovered ? 0 : 0.18;
       speedRef.current += (targetSpeed - speedRef.current) * 0.045;
       rotationRef.current = (rotationRef.current + speedRef.current) % 360;
@@ -93,7 +69,7 @@ export default function HeroCarousel({ onSelectCard }) {
     >
       {/* Center Circular Brand Seal with Central Dot */}
       <div className="wheel-center-seal">
-        <svg viewBox="0 0 160 160" className="seal-rotating-text-svg">
+        <svg viewBox="0 0 160 160" className="seal-rotating-text-svg" aria-hidden="true">
           <path
             id="heroSealTextPath"
             d="M 80, 80 m -56, 0 a 56,56 0 1,1 112,0 a 56,56 0 1,1 -112,0"
@@ -123,9 +99,23 @@ export default function HeroCarousel({ onSelectCard }) {
             onMouseEnter={() => setActiveCard(item.id)}
             onMouseLeave={() => setActiveCard(null)}
             onClick={() => onSelectCard && onSelectCard(item)}
+            role="button"
+            tabIndex={0}
+            aria-label={`View carousel card: ${item.title}`}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                if (onSelectCard) onSelectCard(item);
+              }
+            }}
           >
             <div className="squircle-image-wrap">
-              <img src={item.image} alt={item.title} className="squircle-img" />
+              <img
+                src={item.image}
+                alt={item.title}
+                className="squircle-img"
+                loading="eager"
+                decoding="async"
+              />
             </div>
           </div>
         ))}
@@ -144,7 +134,6 @@ export default function HeroCarousel({ onSelectCard }) {
           max-width: 100%;
         }
 
-        /* Center Circular Compact Brand Seal */
         .wheel-center-seal {
           position: absolute;
           width: 98px;
@@ -264,21 +253,11 @@ export default function HeroCarousel({ onSelectCard }) {
         }
 
         @keyframes cardShapeMorph {
-          0% {
-            border-radius: 38px 18px 38px 18px;
-          }
-          25% {
-            border-radius: 24px 36px 20px 34px;
-          }
-          50% {
-            border-radius: 36px 22px 34px 20px;
-          }
-          75% {
-            border-radius: 20px 34px 24px 36px;
-          }
-          100% {
-            border-radius: 18px 38px 18px 38px;
-          }
+          0% { border-radius: 38px 18px 38px 18px; }
+          25% { border-radius: 24px 36px 20px 34px; }
+          50% { border-radius: 36px 22px 34px 20px; }
+          75% { border-radius: 20px 34px 24px 36px; }
+          100% { border-radius: 18px 38px 18px 38px; }
         }
 
         .wheel-squircle-card.hovered .squircle-image-wrap {
@@ -346,3 +325,9 @@ export default function HeroCarousel({ onSelectCard }) {
     </div>
   );
 }
+
+HeroCarousel.propTypes = {
+  onSelectCard: PropTypes.func
+};
+
+export default memo(HeroCarousel);

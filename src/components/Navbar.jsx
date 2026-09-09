@@ -1,6 +1,23 @@
-import React from 'react';
+/**
+ * @fileoverview Sticky Header Navigation Bar for Frontend Odyssey.
+ * @module Navbar
+ * @description Renders brand title, edition tag, live user presence badge, and menu trigger overlay button.
+ * @author Frontend Odyssey Team
+ */
 
-export default function Navbar({ onOpenMenu, onNavigateRoute }) {
+import React, { memo } from 'react';
+import PropTypes from 'prop-types';
+
+/**
+ * Navbar Component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {Function} [props.onOpenMenu] Callback to open side overlay menu.
+ * @param {Function} [props.onNavigateRoute] Callback to trigger route transition.
+ * @returns {JSX.Element} The rendered header navigation bar.
+ */
+function Navbar({ onOpenMenu, onNavigateRoute }) {
   return (
     <header className="navbar-themed-container" role="banner">
       <nav className="nav-content-grid" aria-label="Main Navigation">
@@ -245,3 +262,11 @@ export default function Navbar({ onOpenMenu, onNavigateRoute }) {
     </header>
   );
 }
+
+Navbar.propTypes = {
+  onOpenMenu: PropTypes.func,
+  onNavigateRoute: PropTypes.func
+};
+
+export default memo(Navbar);
+

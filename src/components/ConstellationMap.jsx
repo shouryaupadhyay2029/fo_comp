@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { MOCK_CATEGORIES } from '../data/synapseData';
 import { synth } from '../utils/audio';
 import ThoughtPreview from './ThoughtPreview';
 import { Noise } from './GradientBackground';
+import '../styles/components/ConstellationMap.css';
 
-export default function ConstellationMap({ nodes, onSelectNode }) {
+function ConstellationMap({ nodes, onSelectNode }) {
   const canvasRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -36,6 +38,10 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
     window.addEventListener('resize', handleResize);
 
     const render = () => {
+      if (document.hidden) {
+        animationFrameId.current = requestAnimationFrame(render);
+        return;
+      }
       timeRef.current += 0.006;
       const t = timeRef.current;
 
@@ -285,128 +291,23 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         <button onClick={() => handleZoom(-0.15)} title="Zoom Out">-</button>
         <button onClick={handleReset} title="Reset View">RESET</button>
       </div>
-
-      <style>{`
-        .constellation-art-container {
-          position: relative;
-          width: 100%;
-          height: 640px;
-          background: #E64A19;
-          overflow: hidden;
-          cursor: grab;
-          user-select: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          touch-action: none;
-        }
-
-        .constellation-art-container:active {
-          cursor: grabbing;
-        }
-
-        .constellation-canvas-art {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 2;
-        }
-
-        .spectrum-bar-minimal {
-          position: absolute;
-          top: 28px;
-          left: 40px;
-          right: 40px;
-          z-index: 10;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-          overflow-x: auto;
-          scrollbar-width: none;
-          -webkit-overflow-scrolling: touch;
-          padding-bottom: 4px;
-        }
-
-        .spectrum-bar-minimal::-webkit-scrollbar {
-          display: none;
-        }
-
-        .spectrum-label {
-          font-family: var(--font-mono);
-          font-size: 0.72rem;
-          color: rgba(255, 255, 255, 0.75);
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          flex-shrink: 0;
-        }
-
-        .spectrum-tab-minimal {
-          background: transparent;
-          border: none;
-          color: rgba(255, 255, 255, 0.75);
-          font-family: var(--font-mono);
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.12em;
-          cursor: pointer;
-          transition: color 0.3s ease;
-          padding: 4px 0;
-          flex-shrink: 0;
-          white-space: nowrap;
-        }
-
-        .spectrum-tab-minimal:hover, .spectrum-tab-minimal.active {
-          color: #ffffff;
-        }
-
-        .spectrum-tab-minimal.active {
-          color: #ffffff;
-          border-bottom: 2px solid #ffffff;
-        }
-
-        .map-controls-minimal {
-          position: absolute;
-          bottom: 24px;
-          right: 40px;
-          z-index: 10;
-          display: flex;
-          gap: 12px;
-          font-size: 0.75rem;
-        }
-
-        .map-controls-minimal button {
-          background: rgba(0, 0, 0, 0.25);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          color: #ffffff;
-          padding: 6px 12px;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .map-controls-minimal button:hover {
-          border-color: #ffffff;
-          background: #ffffff;
-          color: #E64A19;
-        }
-
-        @media (max-width: 768px) {
-          .constellation-art-container {
-            height: 480px;
-          }
-          .spectrum-bar-minimal {
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            gap: 14px;
-          }
-          .map-controls-minimal {
-            bottom: 16px;
-            right: 16px;
-          }
-        }
-      `}</style>
     </div>
   );
 }
+
+ConstellationMap.propTypes = {
+  nodes: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      category: PropTypes.string,
+      x: PropTypes.number,
+      y: PropTypes.number,
+      connections: PropTypes.array
+    })
+  ).isRequired,
+  onSelectNode: PropTypes.func
+};
+
+export default React.memo(ConstellationMap);
+

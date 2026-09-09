@@ -1,8 +1,25 @@
-import React, { useEffect } from 'react';
+/**
+ * @fileoverview Architectural Hero Section Component for Frontend Odyssey.
+ * @module HeroSection
+ * @description Features asymmetric typography layout, GSAP entrance timeline, interactive orbiting 2D wheel carousel, and infinite ticker marquee.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useEffect, memo } from 'react';
+import PropTypes from 'prop-types';
 import gsap from 'gsap';
 import HeroCarousel from './HeroCarousel';
 
-export default function HeroSection({ onEnterMindscape, onSelectCard }) {
+/**
+ * Editorial Hero Section Component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {Function} [props.onEnterMindscape] Function callback to scroll down to spatial constellation section.
+ * @param {Function} [props.onSelectCard] Function callback when a carousel card is clicked.
+ * @returns {JSX.Element} The rendered hero section layout.
+ */
+function HeroSection({ onEnterMindscape, onSelectCard }) {
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
@@ -103,7 +120,7 @@ export default function HeroSection({ onEnterMindscape, onSelectCard }) {
             <span>ZERO ALGORITHMIC BIAS</span>
             <span className="marquee-star">✦</span>
 
-            {/* Set 2 (Duplicate for 100% seamless loop) */}
+            {/* Set 2 */}
             <span>SPATIAL THOUGHT MAPPING</span>
             <span className="marquee-star">✦</span>
             <span>AGENCY OVER ALGORITHM</span>
@@ -128,3 +145,10 @@ export default function HeroSection({ onEnterMindscape, onSelectCard }) {
     </section>
   );
 }
+
+HeroSection.propTypes = {
+  onEnterMindscape: PropTypes.func,
+  onSelectCard: PropTypes.func
+};
+
+export default memo(HeroSection);

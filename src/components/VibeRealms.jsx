@@ -1,8 +1,25 @@
-import React, { useState } from 'react';
+/**
+ * @fileoverview Synchronous Acoustic Vibe Realms Catalogue Component.
+ * @module VibeRealms
+ * @description Displays spatial acoustic realms with 432Hz/528Hz ambient Solfeggio soundscape integration.
+ * @author Frontend Odyssey Team
+ */
+
+import React, { useState, memo } from 'react';
+import PropTypes from 'prop-types';
 import { VIBE_REALMS } from '../data/synapseData';
 import { synth } from '../utils/audio';
 
-export default function VibeRealms({ onSelectNode, allNodes }) {
+/**
+ * Vibe Realms Component.
+ *
+ * @component
+ * @param {Object} props Component properties.
+ * @param {Function} [props.onSelectNode] Callback triggered when a thought fragment inside a realm is selected.
+ * @param {Array} [props.allNodes=[]] Array of all thought nodes in synapse dataset.
+ * @returns {JSX.Element} The rendered acoustic realms catalogue and modal room experience.
+ */
+function VibeRealms({ onSelectNode, allNodes = [] }) {
   const [selectedRealm, setSelectedRealm] = useState(null);
 
   const handleSelectRealm = (realm) => {
@@ -44,6 +61,14 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
                 data-scroll-reveal="slide-left"
                 data-delay={`${(idx + 1) * 120}ms`}
                 onClick={() => handleSelectRealm(realm)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Enter realm: ${realm.name}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSelectRealm(realm);
+                  }
+                }}
               >
                 <span className="row-number font-mono">{realmNum}</span>
 
@@ -102,9 +127,11 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
                       const matchedNode = allNodes.find((n) => n.title.toLowerCase().includes(frag.title.toLowerCase().substring(0, 15)));
                       if (matchedNode) {
                         handleExitRealm();
-                        onSelectNode(matchedNode);
+                        if (onSelectNode) onSelectNode(matchedNode);
                       }
                     }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <h3 className="frag-title">"{frag.title}"</h3>
                     <div className="frag-byline font-mono">
@@ -231,6 +258,7 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
           text-align: right;
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
         }
+
         .realm-fullscreen-overlay {
           position: fixed;
           inset: 0;
@@ -382,3 +410,10 @@ export default function VibeRealms({ onSelectNode, allNodes }) {
     </section>
   );
 }
+
+VibeRealms.propTypes = {
+  onSelectNode: PropTypes.func,
+  allNodes: PropTypes.array
+};
+
+export default memo(VibeRealms);
