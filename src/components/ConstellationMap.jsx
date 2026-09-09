@@ -10,6 +10,7 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [hasMoved, setHasMoved] = useState(false);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [previewPos, setPreviewPos] = useState(null);
 
@@ -26,8 +27,10 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
     const ctx = canvas.getContext('2d');
 
     const handleResize = () => {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
+      if (canvas.parentElement) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -48,6 +51,7 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         hoveredNode.connections.forEach((c) => connectedIds.add(c.targetId));
       }
 
+      // Draw Connections
       filteredNodes.forEach((node) => {
         const floatY = Math.sin(t + node.x * 0.004) * 3;
         const floatX = Math.cos(t + node.y * 0.004) * 2;
@@ -83,6 +87,7 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         }
       });
 
+      // Draw Nodes
       filteredNodes.forEach((node, index) => {
         const floatY = Math.sin(t + node.x * 0.004) * 3;
         const floatX = Math.cos(t + node.y * 0.004) * 2;
@@ -97,8 +102,8 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
         ctx.globalAlpha = isDimmed ? 0.2 : 1.0;
 
         ctx.beginPath();
-        ctx.arc(nx, ny, isHovered ? 4.5 : 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
+        ctx.arc(nx, ny, isHovered ? 5.5 : 3.0, 0, Math.PI * 2);
+        ctx.fillStyle = isHovered ? '#ff7700' : '#ffffff';
         ctx.fill();
 
         ctx.font = '500 9px var(--font-mono)';
@@ -128,11 +133,13 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
+    setHasMoved(false);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
   };
 
   const handleMouseMove = (e) => {
     if (isDragging) {
+      setHasMoved(true);
       setTransform({
         ...transform,
         x: e.clientX - dragStart.x,
@@ -176,7 +183,22 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
     }
   };
 
-  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseUp = () => {
+    if (!hasMoved && hoveredNode && onSelectNode) {
+      synth.playClick();
+      onSelectNode(hoveredNode);
+    }
+    setIsDragging(false);
+  };
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
+    setTransform((prev) => ({
+      ...prev,
+      scale: Math.min(Math.max(prev.scale + zoomDelta, 0.6), 2.2),
+    }));
+  };
 
   const handleZoom = (delta) => {
     setTransform((prev) => ({
@@ -196,7 +218,8 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseLeave={() => setIsDragging(false)}
+      onWheel={handleWheel}
     >
       <Noise patternAlpha={45} intensity={0.9} patternRefreshInterval={2} />
 

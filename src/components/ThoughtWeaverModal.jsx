@@ -5,12 +5,9 @@ import { MOCK_CATEGORIES } from '../data/synapseData';
 export default function ThoughtWeaverModal({ isOpen, onClose, onAddNode, existingNodes, parentNode = null }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState('mindfulness');
+  const [category] = useState('mindfulness');
   const [mood, setMood] = useState('REFLECTIVE');
   const [selectedParentId, setSelectedParentId] = useState(parentNode ? parentNode.id : '');
-
-  if (!isOpen) return null;
-
   const [originMode, setOriginMode] = useState('OPEN_FIELD');
   const [isPlanted, setIsPlanted] = useState(false);
 

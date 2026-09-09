@@ -3,8 +3,6 @@ import gsap from 'gsap';
 
 export default function PageTransitionCurtain({ isTransitioning, onComplete }) {
   const containerRef = useRef(null);
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     if (isTransitioning) {
@@ -15,7 +13,7 @@ export default function PageTransitionCurtain({ isTransitioning, onComplete }) {
       
       const tl = gsap.timeline({
         onComplete: () => {
-          if (onCompleteRef.current) onCompleteRef.current();
+          if (onComplete) onComplete();
         }
       });
 
@@ -44,7 +42,7 @@ export default function PageTransitionCurtain({ isTransitioning, onComplete }) {
         tl.kill();
       };
     }
-  }, [isTransitioning]);
+  }, [isTransitioning, onComplete]);
 
   if (!isTransitioning) return null;
 

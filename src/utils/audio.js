@@ -1,4 +1,4 @@
-// Web Audio API Ambient Synthesizer for SYNAPSE
+// Web Audio API Ambient Synthesizer for VELOURA / SYNAPSE
 
 class SoundSynthesizer {
   constructor() {
@@ -11,10 +11,12 @@ class SoundSynthesizer {
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      this.ctx = new AudioCtx();
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
   }
 
@@ -40,8 +42,16 @@ class SoundSynthesizer {
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
     } catch (e) {
-      // Audio context user gesture fallback
+      // Graceful fallback when user gesture is required by browser autoplay policies
     }
+  }
+
+  playHover(freq = 432) {
+    this.playTone(freq, 0.18);
+  }
+
+  playClick(freq = 528) {
+    this.playTone(freq, 0.35);
   }
 
   startAmbientDrone(freq = 528) {
@@ -60,12 +70,12 @@ class SoundSynthesizer {
       this.gainNode.gain.linearRampToValueAtTime(0.04, this.ctx.currentTime + 1.5);
 
       this.osc.connect(this.gainNode);
-      this.gainNode.connect(this.ctx.destination);
+      gainNode.connect(this.ctx.destination);
 
       this.osc.start();
       this.activeTone = freq;
     } catch (e) {
-      console.warn('Audio play restricted until user gesture');
+      console.warn('Audio playback waiting for user interaction gesture.');
     }
   }
 

@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function CuriousDiscovery({ isOpen, onClose, allNodes = [], node: propNode, onSelectNode }) {
-  if (!isOpen) return null;
+  const [selectedNode, setSelectedNode] = useState(null);
 
-  const node = propNode || (allNodes.length > 0 ? allNodes[Math.floor(Math.random() * allNodes.length)] : null);
-  if (!node) return null;
+  useEffect(() => {
+    if (isOpen) {
+      if (propNode) {
+        setSelectedNode(propNode);
+      } else if (allNodes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * allNodes.length);
+        setSelectedNode(allNodes[randomIndex]);
+      }
+    }
+  }, [isOpen, propNode, allNodes]);
+
+  if (!isOpen || !selectedNode) return null;
+
+  const node = selectedNode;
 
   return (
     <div className="writing-room-overlay active" onClick={onClose}>
