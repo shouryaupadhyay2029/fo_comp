@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { MOCK_NODES } from '../data/synapseData';
 import { synth } from '../utils/audio';
 
-export default function ExchangePage({ initialThought, allNodes, onSelectNode }) {
+export default function ExchangePage({ initialThought, allNodes }) {
   // Featured Thought State
   const featured = initialThought || (allNodes && allNodes.length > 0 ? allNodes[0] : MOCK_NODES[0]);
   const storageKey = `aetheria_resonate_${featured.id}`;
@@ -25,7 +25,7 @@ export default function ExchangePage({ initialThought, allNodes, onSelectNode })
   const [perspectives, setPerspectives] = useState(() => {
     const saved = localStorage.getItem(`aetheria_persp_${featured.id}`);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore parsing errors */ }
     }
     return [
       { text: "Attention isn't necessarily the enemy. Unconscious attention is.", author: "ALEX" },
@@ -37,7 +37,7 @@ export default function ExchangePage({ initialThought, allNodes, onSelectNode })
   const [evolutions, setEvolutions] = useState(() => {
     const saved = localStorage.getItem(`aetheria_evol_${featured.id}`);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
+      try { return JSON.parse(saved); } catch { /* ignore parsing errors */ }
     }
     return [{ title: "SILENT PROTOCOLS", author: "LEO VAUGHN" }];
   });

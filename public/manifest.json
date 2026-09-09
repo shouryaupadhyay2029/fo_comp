@@ -1,0 +1,21 @@
+{
+  "name": "VELOURA — Spatial Thought Network",
+  "short_name": "VELOURA",
+  "description": "A slower, intentional social architecture for ideas, perspectives, and qualitative acoustic resonance.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121110",
+  "theme_color": "#121110",
+  "icons": [
+    {
+      "src": "/carousel/hero1.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/carousel/hero2.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

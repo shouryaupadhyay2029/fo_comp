@@ -1,29 +1,9 @@
-import React, { useState } from 'react';
-import { synth } from '../utils/audio';
+import React from 'react';
 
-export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenResonance, onNavigateSection, onOpenMenu, onNavigateRoute }) {
-  const [isAudioActive, setIsAudioActive] = useState(false);
-
-  const toggleAudio = () => {
-    if (isAudioActive) {
-      synth.stopAmbientDrone();
-      setIsAudioActive(false);
-    } else {
-      synth.startAmbientDrone(432);
-      setIsAudioActive(true);
-    }
-  };
-
-  const handleNavClick = (sectionId, tabId) => {
-    setActiveTab(tabId);
-    if (onNavigateSection) {
-      onNavigateSection(sectionId);
-    }
-  };
-
+export default function Navbar({ onOpenMenu, onNavigateRoute }) {
   return (
-    <header className="navbar-themed-container">
-      <div className="nav-content-grid">
+    <header className="navbar-themed-container" role="banner">
+      <nav className="nav-content-grid" aria-label="Main Navigation">
         {/* Left Side: Editorial Issue Tag */}
         <div className="nav-left-group">
           <div className="nav-issue-badge font-mono">
@@ -35,13 +15,21 @@ export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenRe
 
         {/* Center Brand Name */}
         <div 
-          className="nav-brand-center" 
+          className="nav-brand-center"
+          role="button"
+          tabIndex={0}
+          aria-label="Navigate to Home"
           onClick={() => {
             if (onNavigateRoute) {
               onNavigateRoute('/');
             } else {
               window.history.pushState(null, '', '/');
               window.dispatchEvent(new PopStateEvent('popstate'));
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              if (onNavigateRoute) onNavigateRoute('/');
             }
           }}
         >
@@ -55,15 +43,19 @@ export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenRe
             <span className="presence-text">1,420 ONLINE</span>
           </div>
 
-          <button className="nav-pill-btn menu-trigger-pill" onClick={onOpenMenu} aria-label="Open menu overlay">
-            <svg className="hamburger-lines-svg" viewBox="0 0 24 24" fill="currentColor">
+          <button
+            className="nav-pill-btn menu-trigger-pill"
+            onClick={onOpenMenu}
+            aria-label="Open menu navigation overlay"
+          >
+            <svg className="hamburger-lines-svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <rect x="2" y="5" width="20" height="2.5" rx="1" />
               <rect x="2" y="11" width="20" height="2.5" rx="1" />
               <rect x="2" y="17" width="20" height="2.5" rx="1" />
             </svg>
           </button>
         </div>
-      </div>
+      </nav>
 
       <style>{`
         .navbar-themed-container {
@@ -203,21 +195,6 @@ export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenRe
           box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
         }
 
-        .nav-pill-btn.active {
-          background: #ffffff;
-          color: #120b05;
-        }
-
-        .active-audio {
-          background: #38bdf8 !important;
-          color: #07080e !important;
-        }
-
-        .pill-bag-icon {
-          width: 15px;
-          height: 15px;
-        }
-
         .hamburger-lines-svg {
           width: 18px;
           height: 18px;
@@ -268,4 +245,3 @@ export default function Navbar({ activeTab, setActiveTab, onOpenWeaver, onOpenRe
     </header>
   );
 }
-

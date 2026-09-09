@@ -16,7 +16,7 @@ export default function YourbanaMenuOverlay({ isOpen, onClose, onSelectMenuItem,
     if (isOpen) {
       setShouldRender(true);
       setIsClosing(false);
-    } else if (shouldRender) {
+    } else {
       setIsClosing(true);
       const timer = setTimeout(() => {
         setShouldRender(false);

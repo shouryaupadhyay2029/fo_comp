@@ -37,7 +37,6 @@ export default function App() {
 
   // Application State
   const [exchangeThought, setExchangeThought] = useState(null);
-  const [activeTab, setActiveTab] = useState('constellation');
   const [nodes, setNodes] = useState(MOCK_NODES);
   const [selectedNode, setSelectedNode] = useState(null);
   const [isWeaverOpen, setIsWeaverOpen] = useState(false);
@@ -152,11 +151,6 @@ export default function App() {
 
         {/* Header Navbar */}
         <Navbar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onOpenWeaver={handleOpenWeaverGeneral}
-          onOpenResonance={() => setIsResonanceOpen(true)}
-          onNavigateSection={scrollToSection}
           onOpenMenu={() => setIsMenuOverlayOpen(true)}
           onNavigateRoute={handleNavigateRoute}
         />
@@ -174,7 +168,6 @@ export default function App() {
             <ExchangePage
               initialThought={exchangeThought}
               allNodes={nodes}
-              onSelectNode={(node) => setSelectedNode(node)}
             />
           ) : currentPath === '/realms' ? (
             <RealmsPage
@@ -336,15 +329,13 @@ export default function App() {
         <YourbanaMenuOverlay
           isOpen={isMenuOverlayOpen}
           onClose={() => setIsMenuOverlayOpen(false)}
-          onSelectMenuItem={(sectionId, tabId) => {
+          onSelectMenuItem={(sectionId) => {
             if (currentPath !== '/') {
               handleNavigateRoute('/');
               setTimeout(() => {
-                setActiveTab(tabId);
                 scrollToSection(sectionId);
               }, 400);
             } else {
-              setActiveTab(tabId);
               scrollToSection(sectionId);
             }
           }}

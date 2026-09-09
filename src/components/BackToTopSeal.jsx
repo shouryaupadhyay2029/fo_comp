@@ -26,10 +26,21 @@ export default function BackToTopSeal() {
   };
 
   return (
-    <div className={`back-to-top-seal-container ${isVisible ? 'visible' : ''}`} onClick={scrollToTop}>
+    <div
+      className={`back-to-top-seal-container ${isVisible ? 'visible' : ''}`}
+      onClick={scrollToTop}
+      role="button"
+      tabIndex={0}
+      aria-label="Scroll back to top of page"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          scrollToTop();
+        }
+      }}
+    >
       <div className="seal-badge-inner">
         {/* Rotating Circular Text Ring */}
-        <svg className="seal-text-svg" viewBox="0 0 120 120">
+        <svg className="seal-text-svg" viewBox="0 0 120 120" aria-hidden="true">
           <path
             id="sealTextPath"
             d="M 60, 60 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
@@ -44,7 +55,7 @@ export default function BackToTopSeal() {
 
         {/* Center Upward Arrow Icon */}
         <div className="seal-center-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#f7b233" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f7b233" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <line x1="12" y1="19" x2="12" y2="5"></line>
             <polyline points="5 12 12 5 19 12"></polyline>
           </svg>

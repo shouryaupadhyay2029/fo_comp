@@ -41,7 +41,7 @@ class SoundSynthesizer {
 
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
-    } catch (e) {
+    } catch {
       // Graceful fallback when user gesture is required by browser autoplay policies
     }
   }
@@ -74,7 +74,7 @@ class SoundSynthesizer {
 
       this.osc.start();
       this.activeTone = freq;
-    } catch (e) {
+    } catch {
       console.warn('Audio playback waiting for user interaction gesture.');
     }
   }
@@ -90,7 +90,7 @@ class SoundSynthesizer {
             this.osc = null;
           }
         }, 500);
-      } catch (e) {
+      } catch {
         this.osc = null;
       }
     }

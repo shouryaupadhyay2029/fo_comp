@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { MOCK_NODES } from '../data/synapseData';
 import { synth } from '../utils/audio';
 
 const REALMS_DATA = [
