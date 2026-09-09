@@ -191,6 +191,35 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
     setIsDragging(false);
   };
 
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setIsDragging(true);
+      setHasMoved(false);
+      setDragStart({ x: touch.clientX - transform.x, y: touch.clientY - transform.y });
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (isDragging && e.touches.length === 1) {
+      const touch = e.touches[0];
+      setHasMoved(true);
+      setTransform({
+        ...transform,
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!hasMoved && hoveredNode && onSelectNode) {
+      synth.playClick();
+      onSelectNode(hoveredNode);
+    }
+    setIsDragging(false);
+  };
+
   const handleWheel = (e) => {
     e.preventDefault();
     const zoomDelta = e.deltaY > 0 ? -0.1 : 0.1;
@@ -219,6 +248,9 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={() => setIsDragging(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
     >
       <Noise patternAlpha={45} intensity={0.9} patternRefreshInterval={2} />
@@ -266,6 +298,7 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
           display: flex;
           align-items: center;
           justify-content: center;
+          touch-action: none;
         }
 
         .constellation-art-container:active {
@@ -284,10 +317,19 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
           position: absolute;
           top: 28px;
           left: 40px;
+          right: 40px;
           z-index: 10;
           display: flex;
           align-items: center;
-          gap: 24px;
+          gap: 20px;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 4px;
+        }
+
+        .spectrum-bar-minimal::-webkit-scrollbar {
+          display: none;
         }
 
         .spectrum-label {
@@ -296,6 +338,7 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
           color: rgba(255, 255, 255, 0.75);
           letter-spacing: 0.15em;
           text-transform: uppercase;
+          flex-shrink: 0;
         }
 
         .spectrum-tab-minimal {
@@ -309,6 +352,8 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
           cursor: pointer;
           transition: color 0.3s ease;
           padding: 4px 0;
+          flex-shrink: 0;
+          white-space: nowrap;
         }
 
         .spectrum-tab-minimal:hover, .spectrum-tab-minimal.active {
@@ -348,7 +393,17 @@ export default function ConstellationMap({ nodes, onSelectNode }) {
 
         @media (max-width: 768px) {
           .constellation-art-container {
-            height: 500px;
+            height: 480px;
+          }
+          .spectrum-bar-minimal {
+            top: 16px;
+            left: 16px;
+            right: 16px;
+            gap: 14px;
+          }
+          .map-controls-minimal {
+            bottom: 16px;
+            right: 16px;
           }
         }
       `}</style>

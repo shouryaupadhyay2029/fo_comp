@@ -6,17 +6,25 @@ export default function CustomCursor() {
   const [hoverText, setHoverText] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const posRef = useRef({ targetX: -100, targetY: -100, currentX: -100, currentY: -100 });
   const isHoveredRef = useRef(false);
 
   useEffect(() => {
+    // Detect touch device to prevent hiding native cursor on mobile/tablet
+    const touchCheck = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    if (touchCheck) {
+      setIsTouchDevice(true);
+      return;
+    }
+
     document.body.classList.add('custom-cursor-active');
 
     const handleMouseMove = (e) => {
       posRef.current.targetX = e.clientX;
       posRef.current.targetY = e.clientY;
-      if (!isVisible) setIsVisible(true);
+      setIsVisible(true);
 
       const interactiveEl = e.target.closest('button, a, .action-link, .wheel-squircle-card, .nav-brand-center, .yourbana-nav-item, .marquee-floating-badge, .constellation-node, .realm-card, .sanctuary-card');
 
@@ -58,7 +66,6 @@ export default function CustomCursor() {
       const dx = targetX - currentX;
       const dy = targetY - currentY;
 
-      // Only calculate lerp if moving
       if (Math.abs(dx) > 0.05 || Math.abs(dy) > 0.05) {
         posRef.current.currentX += dx * 0.22;
         posRef.current.currentY += dy * 0.22;
@@ -83,7 +90,7 @@ export default function CustomCursor() {
     };
   }, []);
 
-  if (!isVisible) return null;
+  if (isTouchDevice || !isVisible) return null;
 
   return (
     <>

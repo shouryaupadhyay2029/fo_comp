@@ -88,6 +88,8 @@ export default function HeroCarousel({ onSelectCard }) {
       className="hero-2d-wheel-stage"
       onMouseEnter={() => setIsStageHovered(true)}
       onMouseLeave={() => setIsStageHovered(false)}
+      onTouchStart={() => setIsStageHovered(true)}
+      onTouchEnd={() => setIsStageHovered(false)}
     >
       {/* Center Circular Brand Seal with Central Dot */}
       <div className="wheel-center-seal">
@@ -139,6 +141,7 @@ export default function HeroCarousel({ onSelectCard }) {
           justify-content: center;
           margin: 0 auto;
           user-select: none;
+          max-width: 100%;
         }
 
         /* Center Circular Compact Brand Seal */
@@ -303,18 +306,6 @@ export default function HeroCarousel({ onSelectCard }) {
           animation-play-state: paused;
         }
 
-        @keyframes innerImagePan {
-          0% {
-            transform: scale(1.05) translate(0%, 0%);
-          }
-          50% {
-            transform: scale(1.12) translate(-4%, -3%);
-          }
-          100% {
-            transform: scale(1.08) translate(2%, -2%);
-          }
-        }
-
         @media (max-width: 1150px) {
           .hero-2d-wheel-stage {
             width: 440px;
@@ -327,6 +318,28 @@ export default function HeroCarousel({ onSelectCard }) {
           }
           .wheel-squircle-card.hovered {
             transform: rotate(var(--angle)) translateY(-185px) rotate(calc(var(--angle) * -0.2)) scale(1.12);
+          }
+        }
+
+        @media (max-width: 600px) {
+          .hero-2d-wheel-stage {
+            width: 320px;
+            height: 320px;
+          }
+          .wheel-center-seal {
+            width: 72px;
+            height: 72px;
+          }
+          .seal-text-path {
+            font-size: 6.5px;
+          }
+          .wheel-squircle-card {
+            width: 82px;
+            height: 105px;
+            transform: rotate(var(--angle)) translateY(-125px) rotate(calc(var(--angle) * -0.2));
+          }
+          .wheel-squircle-card.hovered {
+            transform: rotate(var(--angle)) translateY(-132px) rotate(calc(var(--angle) * -0.2)) scale(1.1);
           }
         }
       `}</style>

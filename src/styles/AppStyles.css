@@ -1,8 +1,9 @@
-/* VELOURA Structural & Layout Stylesheet */
+/* VELOURA Structural & Layout Responsive Stylesheet */
 
 .app-main-wrapper {
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
 }
 
 .editorial-main-content {
@@ -227,16 +228,6 @@
   }
 }
 
-@media (max-width: 1100px) {
-  .hero-main-split {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-  .hero-right-column {
-    order: -1;
-  }
-}
-
 .hero-enter-link {
   font-size: 1rem;
 }
@@ -341,13 +332,6 @@
   filter: grayscale(20%) contrast(105%) brightness(1);
 }
 
-@media (max-width: 1100px) {
-  .manifesto-block {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-}
-
 /* Mindscape Section */
 .mindscape-section {
   padding-top: 120px;
@@ -402,6 +386,7 @@
   color: #94a3b8;
   letter-spacing: 0.15em;
   margin-bottom: 28px;
+  flex-wrap: wrap;
 }
 
 .byline-sep {
@@ -525,6 +510,7 @@
   font-weight: 600;
   color: #121110;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .outway-lang-picker {
@@ -545,6 +531,24 @@
   padding-bottom: 12px;
 }
 
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES (TABLET & MOBILE OPTIMIZATIONS)
+   ========================================================================== */
+
+@media (max-width: 1100px) {
+  .hero-main-split {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hero-right-column {
+    order: -1;
+  }
+  .manifesto-block {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
 @media (max-width: 900px) {
   .outway-editorial-footer {
     padding: 40px 20px 0 20px;
@@ -563,8 +567,85 @@
   }
 }
 
+@media (max-width: 768px) {
+  .asymmetric-hero-section {
+    padding: calc(var(--nav-height) + 20px) 20px 40px 20px;
+    min-height: auto;
+  }
+  .hero-display-title {
+    font-size: clamp(2rem, 9.5vw, 4.2rem) !important;
+  }
+  .hero-action-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .scroll-indicator {
+    display: none;
+  }
+  .hero-bottom-marquee-banner {
+    margin-top: 40px;
+    padding: 14px 0;
+  }
+  .marquee-floating-badge {
+    font-size: 0.68rem;
+    padding: 6px 16px;
+  }
+  .marquee-track-content span {
+    font-size: 0.85rem;
+  }
+  .philosophy-manifesto-section {
+    padding: 60px 20px;
+  }
+  .manifesto-block {
+    padding: 36px 0;
+  }
+  .manifesto-num {
+    font-size: 1.2rem;
+  }
+  .manifesto-title {
+    font-size: clamp(2rem, 7.5vw, 3.5rem);
+  }
+  .mindscape-section {
+    padding-top: 60px;
+  }
+  .mindscape-header-box {
+    padding: 0 20px;
+  }
+  .mindscape-title {
+    font-size: clamp(1.8rem, 6.5vw, 3rem);
+  }
+  .featured-magazine-section {
+    padding: 60px 20px;
+  }
+  .featured-magazine-title {
+    font-size: clamp(1.8rem, 6.5vw, 3rem);
+  }
+  .magazine-actions {
+    gap: 16px;
+  }
+  .final-cta-section {
+    padding: 60px 20px;
+  }
+  .final-title {
+    font-size: clamp(1.8rem, 6.5vw, 3rem);
+  }
+}
+
 @media (max-width: 550px) {
   .outway-footer-columns {
     grid-template-columns: 1fr;
+  }
+  .marquee-floating-badge {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 0 auto 12px auto;
+    display: inline-flex;
+    justify-content: center;
+  }
+  .marquee-floating-badge:hover {
+    transform: none;
   }
 }
